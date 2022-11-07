@@ -1,6 +1,7 @@
 """Generates Hack assembly code from the parsed VM command."""
 
 from typing import List, Union, Literal
+import os
 
 from vmtranslator import vm, hack
 
@@ -15,6 +16,7 @@ class ASMCodeWriter:
 
     def __init__(self, output_file_path: str) -> None:
         self.output = open(output_file_path, "w", encoding="utf-8")
+        self._filename = os.path.basename(output_file_path)
 
     def write_arithmetic(self, command: str) -> None:
         """
@@ -76,6 +78,32 @@ class ASMCodeWriter:
                     A = A+{index}
                     M = D
                     """
+        elif segment == hack.MemorySegments.STATIC:
+            if vm.VMCommandTypes.is_push(command):
+                asm = f"""//push static i
+                // D = STATIC[i]
+                @{self._filename}.{index}
+                A = M
+                D = M
+                // put D onto stack
+                @SP
+                A = M
+                M = D
+                // SP++
+                @SP
+                M = M+1
+                """
+            else:
+                asm = f"""// pop static i
+                // SP--
+                @SP
+                M = M - 1
+                A = M
+                D = M
+                // STATIC[INDEX] = D
+                @{self._filename}.{index}
+                M = D
+                """
         else:
             raise ValueError()
         lines = code_block_to_lines(asm)
