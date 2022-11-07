@@ -23,6 +23,159 @@ class ASMCodeWriter:
         Writes to the output file the assembly code that implements
         the given arithmetic-logical command.
         """
+        command = vm.ArithmeticCommands(command)
+        if command == vm.ArithmeticCommands.ADD:
+            asm = """//add
+                    // SP--
+                    @SP
+                    M = M-1
+                    // D = RAM[SP]
+                    A = M
+                    D = M
+                    // M = D + RAM[SP-1]
+                    A = A - 1
+                    M = D + M
+                    """
+        elif command == vm.ArithmeticCommands.SUB:
+            asm = """//sub
+                    // SP--
+                    @SP
+                    M = M-1
+                    // D = RAM[SP]
+                    A = M
+                    D = M
+                    // M = RAM[SP-1] - D
+                    A = A - 1
+                    M = M - D
+                    """
+        elif command == vm.ArithmeticCommands.NEG:
+            asm = """//neg
+                    @SP
+                    A = M
+                    A = A-1
+                    M = -M
+                    """
+        elif command == vm.ArithmeticCommands.EQ:
+            asm = """//eq
+                    @SP
+                    M = M-1
+                    A = M
+                    D = M
+                    A = A - 1
+                    // D==0 if EQ, else not
+                    D = M - D
+                    // RAM[SP] = 0 (false)
+                    M = 0
+                    // if D==0, JUMP to ZERO
+                    @ZERO
+                    D;JEQ
+
+                    // jump to END
+                    @END
+                    0;JMP
+
+                    (ZERO)
+                    // RAM[SP-1] = 1
+                    @SP
+                    A = M
+                    A = A-1
+                    M = 1
+
+                    (END)
+                    """
+
+        elif command == vm.ArithmeticCommands.GT:
+            asm = """//eq
+                    @SP
+                    M = M-1
+                    A = M
+                    D = M
+                    A = A - 1
+                    // D>0 if GT, else not
+                    D = M - D
+                    // RAM[SP] = 0 (false)
+                    M = 0
+                    // if D>0, JUMP to POSITIVE
+                    @POSITIVE
+                    D;JGT
+
+                    // jump to END
+                    @END
+                    0;JMP
+
+                    (POSITIVE)
+                    // RAM[SP-1] = 1
+                    @SP
+                    A = M
+                    A = A-1
+                    M = 1
+
+                    (END)
+                    """
+        elif command == vm.ArithmeticCommands.LT:
+            asm = """//eq
+                    @SP
+                    M = M-1
+                    A = M
+                    D = M
+                    A = A - 1
+                    // D<0 if LT, else not
+                    D = M - D
+                    // RAM[SP] = 0 (false)
+                    M = 0
+                    // if D>0, JUMP to NEGATIVE
+                    @NEGATIVE
+                    D;JLT
+
+                    // jump to END
+                    @END
+                    0;JMP
+
+                    (NEGATIVE)
+                    // RAM[SP-1] = 1
+                    @SP
+                    A = M
+                    A = A-1
+                    M = 1
+
+                    (END)
+                    """
+        elif command == vm.ArithmeticCommands.AND:
+            asm = """//and
+                    // SP--
+                    @SP
+                    M = M-1
+                    // D = RAM[SP]
+                    A = M
+                    D = M
+                    // M = RAM[SP-1] - D
+                    A = A - 1
+                    M = M&D
+                    """
+
+        elif command == vm.ArithmeticCommands.OR:
+            asm = """//or
+                    // SP--
+                    @SP
+                    M = M-1
+                    // D = RAM[SP]
+                    A = M
+                    D = M
+                    // M = RAM[SP-1] - D
+                    A = A - 1
+                    M = M|D
+                    """
+        elif command == vm.ArithmeticCommands.NOT:
+            asm = """//not
+                    @SP
+                    A = M
+                    A = A-1
+                    M = !M
+                    """
+        else:
+            raise ValueError()
+        lines = code_block_to_lines(asm)
+        self._write_lines(lines)
 
     def write_push_pop(self, command: PUSHPOP_CMD, segment: str, index: int) -> None:
         """
