@@ -16,161 +16,163 @@ class ASMCodeWriter:
 
     def __init__(self, output_file_path: str) -> None:
         self.output = open(output_file_path, "w", encoding="utf-8")
-        self._filename = os.path.basename(output_file_path)
+        self._filename = os.path.basename(output_file_path).split(".")[0]
+        self.i = 0
 
     def write_arithmetic(self, command: str) -> None:
         """
         Writes to the output file the assembly code that implements
         the given arithmetic-logical command.
         """
+        self.i += 1
         command = vm.ArithmeticCommands(command)
         if command == vm.ArithmeticCommands.ADD:
             asm = """//add
                     // SP--
                     @SP
-                    M = M-1
+                    M=M-1
                     // D = RAM[SP]
-                    A = M
-                    D = M
+                    A=M
+                    D=M
                     // M = D + RAM[SP-1]
-                    A = A - 1
-                    M = D + M
+                    A=A-1
+                    M=D+M
                     """
         elif command == vm.ArithmeticCommands.SUB:
             asm = """//sub
                     // SP--
                     @SP
-                    M = M-1
+                    M=M-1
                     // D = RAM[SP]
-                    A = M
-                    D = M
+                    A=M
+                    D=M
                     // M = RAM[SP-1] - D
-                    A = A - 1
-                    M = M - D
+                    A=A-1
+                    M=M-D
                     """
         elif command == vm.ArithmeticCommands.NEG:
             asm = """//neg
                     @SP
-                    A = M
-                    A = A-1
-                    M = -M
+                    A=M
+                    A=A-1
+                    M=-M
                     """
         elif command == vm.ArithmeticCommands.EQ:
-            asm = """//eq
+            asm = f"""//eq
                     @SP
-                    M = M-1
-                    A = M
-                    D = M
-                    A = A - 1
+                    M=M-1
+                    A=M
+                    D=M
+                    A=A-1
                     // D==0 if EQ, else not
-                    D = M - D
+                    D=M-D
                     // RAM[SP] = 0 (false)
-                    M = 0
+                    M=0
                     // if D==0, JUMP to ZERO
-                    @ZERO
+                    @ZERO{self.i}
                     D;JEQ
 
                     // jump to END
-                    @END
+                    @END{self.i}
                     0;JMP
 
-                    (ZERO)
+                    (ZERO{self.i})
                     // RAM[SP-1] = 1
                     @SP
-                    A = M
-                    A = A-1
-                    M = 1
+                    A=M
+                    A=A-1
+                    M=-1
 
-                    (END)
+                    (END{self.i})
                     """
 
         elif command == vm.ArithmeticCommands.GT:
-            asm = """//eq
+            asm = f"""//eq
                     @SP
-                    M = M-1
-                    A = M
-                    D = M
-                    A = A - 1
+                    M=M-1
+                    A=M
+                    D=M
+                    A=A-1
                     // D>0 if GT, else not
-                    D = M - D
+                    D=M-D
                     // RAM[SP] = 0 (false)
-                    M = 0
+                    M=0
                     // if D>0, JUMP to POSITIVE
-                    @POSITIVE
+                    @POSITIVE{self.i}
                     D;JGT
 
                     // jump to END
-                    @END
+                    @END{self.i}
                     0;JMP
 
-                    (POSITIVE)
+                    (POSITIVE{self.i})
                     // RAM[SP-1] = 1
                     @SP
-                    A = M
-                    A = A-1
-                    M = 1
+                    A=M
+                    A=A-1
+                    M=-1
 
-                    (END)
+                    (END{self.i})
                     """
         elif command == vm.ArithmeticCommands.LT:
-            asm = """//eq
+            asm = f"""//eq
                     @SP
-                    M = M-1
-                    A = M
-                    D = M
-                    A = A - 1
+                    M=M-1
+                    A=M
+                    D=M
+                    A=A-1
                     // D<0 if LT, else not
-                    D = M - D
+                    D=M-D
                     // RAM[SP] = 0 (false)
-                    M = 0
+                    M=0
                     // if D>0, JUMP to NEGATIVE
-                    @NEGATIVE
+                    @NEGATIVE{self.i}
                     D;JLT
 
                     // jump to END
-                    @END
+                    @END{self.i}
                     0;JMP
 
-                    (NEGATIVE)
+                    (NEGATIVE{self.i})
                     // RAM[SP-1] = 1
                     @SP
-                    A = M
-                    A = A-1
-                    M = 1
+                    A=M
+                    A=A-1
+                    M=-1
 
-                    (END)
+                    (END{self.i})
                     """
         elif command == vm.ArithmeticCommands.AND:
             asm = """//and
                     // SP--
                     @SP
-                    M = M-1
+                    M=M-1
                     // D = RAM[SP]
-                    A = M
-                    D = M
+                    A=M
+                    D=M
                     // M = RAM[SP-1] - D
-                    A = A - 1
-                    M = M&D
+                    A=A-1
+                    M=M&D
                     """
 
         elif command == vm.ArithmeticCommands.OR:
             asm = """//or
                     // SP--
                     @SP
-                    M = M-1
+                    M=M-1
                     // D = RAM[SP]
-                    A = M
-                    D = M
+                    A=M
+                    D=M
                     // M = RAM[SP-1] - D
-                    A = A - 1
-                    M = M|D
+                    A=A-1
+                    M=M|D
                     """
         elif command == vm.ArithmeticCommands.NOT:
             asm = """//not
                     @SP
-                    A = M
-                    A = A-1
-                    M = !M
+                    A=M
+                    A=A-1
+                    M=!M
                     """
         else:
             raise ValueError()
@@ -206,108 +208,117 @@ class ASMCodeWriter:
             if vm.VMCommandTypes.is_push(command):
                 asm = f"""//push {segment_pointer} {index}
                         // {segment_pointer} i -> D
+                        @{index}
+                        D=A
                         @{segment_pointer}
-                        A = M
-                        A = A + {index}
-                        D = M
-                        // Put D onto stack
+                        D=M+D
+                        A=D
+                        D=M
                         @SP
-                        A = M
-                        M = D
-                        // SP++
+                        A=M
+                        M=D
                         @SP
-                        M = M + 1
+                        M=M+1
                         """
             else:
-                asm = f"""// pop {segment_pointer} {index}
-                    // SP--
-                    @SP
-                    M = M-1
-                    A = M
-                    D = M // D=RAM[SP]
-                    // RAM[{segment_pointer}+i] = D
-                    @{segment_pointer}
-                    A = M
-                    A = A+{index}
-                    M = D
-                    """
+                asm = f"""//pop {segment_pointer} {index}
+                        @{index}
+                        D=A
+                        @{segment_pointer}
+                        D=M+D
+                        @R13
+                        M=D
+                        @SP
+                        M=M-1
+                        A=M
+                        D=M
+                        @R13
+                        A=M
+                        M=D
+                        """
         elif segment == hack.MemorySegments.STATIC:
             if vm.VMCommandTypes.is_push(command):
                 asm = f"""//push static i
                 // D = STATIC[i]
                 @{self._filename}.{index}
-                A = M
-                D = M
+                D=M
                 // put D onto stack
                 @SP
-                A = M
-                M = D
+                A=M
+                M=D
                 // SP++
                 @SP
-                M = M+1
+                M=M+1
                 """
             else:
                 asm = f"""// pop static i
                 // SP--
                 @SP
-                M = M - 1
-                A = M
-                D = M
+                M=M-1
+                A=M
+                D=M
                 // STATIC[INDEX] = D
                 @{self._filename}.{index}
-                M = D
+                M=D
                 """
         elif segment == hack.MemorySegments.TEMP:
             if vm.VMCommandTypes.is_push(command):
                 asm = f"""//push temp i
+                @{index}
+                D=A
                 @{hack.RAM_POSITION_MAP[segment]}
-                A = A+{index}
-                D = M
+                A=A+D
+                D=M
                 // RAM[SP] = D
                 @SP
-                A = M
-                M = D
+                A=M
+                M=D
                 // SP++
                 @SP
-                M = M+1
+                M=M+1
                 """
             else:
                 asm = f"""//pop temp i
                 // SP--
-                @SP
-                M = M-1
-                // D=RAM[SP]
-                A = M
-                D = M
-                // TEMP[i] = D
+                @{index}
+                D=A
                 @{hack.RAM_POSITION_MAP[segment]}
-                A = A+{index}
-                M = D
+                D=A+D
+                // store addr in RAM13
+                @R13
+                M=D
+                @SP
+                M=M-1
+                A=M
+                D=M
+                @R13
+                A=M
+                M=D
                 """
         elif segment == hack.MemorySegments.POINTER:
             assert index == 0 or index == 1
-            accessed_segment = hack.THAT_POINTER if index else hack.THAT_POINTER
+            accessed_segment = hack.THAT_POINTER if index else hack.THIS_POINTER
             if vm.VMCommandTypes.is_push(command):
                 asm = f"""// push pointer index
                 @{accessed_segment}
-                D = M
+                D=M
                 @SP
-                A = M
-                M = D
+                A=M
+                M=D
                 // SP++
                 @SP
-                M = M+1
+                M=M+1
                 """
             else:
                 asm = f"""// pop pointer index
                 // SP--
                 @SP 
-                M = M-1
+                M=M-1
                 // D = RAM[SP]
-                A = M
-                D = M
+                A=M
+                D=M
                 @{accessed_segment}
-                M = D
+                M=D
                 """
         else:
             raise ValueError()
@@ -316,6 +327,8 @@ class ASMCodeWriter:
 
     def _write_lines(self, lines: List[str]) -> None:
         for line in lines:
+            if not line or line.startswith("//"):
+                continue
             self.output.write(line)
             self.output.write("\n")
 
