@@ -1,6 +1,6 @@
 """Unit test for testing VMParser"""
 
-from vmtranslator import vmparser
+from vmtranslator import vmparser, vm
 
 
 class TestVMParser:
@@ -13,20 +13,20 @@ class TestVMParser:
     def test_push(self):
         parser = vmparser.VMParser("tests/pushpop_test.vm")
         parser.advance()
-        assert parser.command_type() == vmparser.VMCommandTypes.C_PUSH
+        assert parser.command_type() == vm.VMCommandTypes.C_PUSH
 
     def test_pop(self):
         parser = vmparser.VMParser("tests/pushpop_test.vm")
         parser.advance()
         parser.advance()
-        assert parser.command_type() == vmparser.VMCommandTypes.C_POP
+        assert parser.command_type() == vm.VMCommandTypes.C_POP
 
     def test_arithmetic(self):
         parser = vmparser.VMParser("tests/pushpop_test.vm")
         parser.advance()
         parser.advance()
         parser.advance()
-        assert parser.command_type() == vmparser.VMCommandTypes.C_ARITHMETIC
+        assert parser.command_type() == vm.VMCommandTypes.C_ARITHMETIC
 
     def test_arg1(self):
         parser = vmparser.VMParser("tests/pushpop_test.vm")
@@ -34,10 +34,12 @@ class TestVMParser:
         assert parser.arg1() == "local"
         parser.advance()
         assert parser.arg1() == "pointer"
+        parser.advance()
+        assert parser.arg1() == "add"
 
     def test_arg2(self):
         parser = vmparser.VMParser("tests/pushpop_test.vm")
         parser.advance()
-        assert parser.arg2() == "1"
+        assert parser.arg2() == 1
         parser.advance()
-        assert parser.arg2() == "0"
+        assert parser.arg2() == 0

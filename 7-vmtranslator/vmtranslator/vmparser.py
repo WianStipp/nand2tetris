@@ -1,40 +1,14 @@
 """Defines the Parser class to parse VM code."""
 
-from typing import Union, List, Optional, Literal
-import enum
+from typing import List, Optional
 
-
-class VMCommandTypes(enum.Enum):
-    """
-    Defines the VM command types.
-    """
-
-    C_ARITHMETIC = "C_ARITHMETIC"
-    C_PUSH = "C_PUSH"
-    C_POP = "C_POP"
-    C_LABEL = "C_LABEL"
-    C_GOTO = "C_GOTO"
-    C_IF = "C_IF"
-    C_FUNCTION = "C_FUNCTION"
-    C_RETURN = "C_RETURN"
-    C_CALL = "C_CALL"
-
+from vmtranslator import vm
 
 CMD_TO_TYPE_MAP = {
-    "push": VMCommandTypes.C_PUSH,
-    "pop": VMCommandTypes.C_POP,
-    "add": VMCommandTypes.C_ARITHMETIC,
-    "sub": VMCommandTypes.C_ARITHMETIC,
-    "neg": VMCommandTypes.C_ARITHMETIC,
-    "eq": VMCommandTypes.C_ARITHMETIC,
-    "gt": VMCommandTypes.C_ARITHMETIC,
-    "lt": VMCommandTypes.C_ARITHMETIC,
-    "and": VMCommandTypes.C_ARITHMETIC,
-    "or": VMCommandTypes.C_ARITHMETIC,
-    "not": VMCommandTypes.C_ARITHMETIC,
+    "push": vm.VMCommandTypes.C_PUSH,
+    "pop": vm.VMCommandTypes.C_POP,
+    **{m.value: vm.VMCommandTypes.C_ARITHMETIC for m in vm.ArithmeticCommands},
 }
-
-PUSHPOP_CMD = Union[Literal[VMCommandTypes.C_PUSH], Literal[VMCommandTypes.C_POP]]
 
 
 class VMParser:
@@ -66,30 +40,31 @@ class VMParser:
         self._line_pointer += 1
         self._current_line = self.file_lines[self._line_pointer]
 
-    def command_type(self) -> VMCommandTypes:
+    def command_type(self) -> vm.VMCommandTypes:
         """
         Returns a constant representing the type of the
         current command.
         """
-        for cmd, type_ in CMD_TO_TYPE_MAP.items():
-            line_cmd, *_ = self._current_line.split()
-            if cmd in line_cmd:
-                return type_
-        raise ValueError(f"Unspecified command in line {self._current_line}")
+        line_cmd, *_ = self._current_line.split()
+        return CMD_TO_TYPE_MAP[line_cmd]
 
     def arg1(self) -> str:
         """
         Returns the first argument of the current command.
+
+        In the case of C_ARITHMETIC, return the command itself.
         """
+        if self.command_type() == vm.VMCommandTypes.C_ARITHMETIC:
+            return self._current_line
         _, arg1, _ = self._current_line.split()
         return arg1
 
-    def arg2(self) -> str:
+    def arg2(self) -> int:
         """
         Returns the second argument of the current command.
         """
         _, _, arg2 = self._current_line.split()
-        return arg2
+        return int(arg2)
 
     def _read_file_lines(self) -> List[str]:
         with open(self.input_file_path, "r", encoding="utf-8") as f:
