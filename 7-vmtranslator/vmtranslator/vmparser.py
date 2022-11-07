@@ -69,4 +69,5 @@ class VMParser:
     def _read_file_lines(self) -> List[str]:
         with open(self.input_file_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
-        return [l.strip("\n") for l in lines]
+        lines = [l.strip("\n") for l in lines if not l.startswith("//")]
+        return [l for l in lines if l]
