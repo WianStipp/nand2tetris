@@ -12,6 +12,8 @@ class MemorySegments(enum.Enum):
     TEMP = "temp"
 
 
+RAM_POSITION_MAP = {MemorySegments.TEMP: 5}
+
 ARG_POINTER = "ARG"
 LCL_POINTER = "LCL"
 THIS_POINTER = "THIS"

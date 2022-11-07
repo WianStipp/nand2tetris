@@ -104,6 +104,58 @@ class ASMCodeWriter:
                 @{self._filename}.{index}
                 M = D
                 """
+        elif segment == hack.MemorySegments.TEMP:
+            if vm.VMCommandTypes.is_push(command):
+                asm = f"""//push temp i
+                @{hack.RAM_POSITION_MAP[segment]}
+                A = A+{index}
+                D = M
+                // RAM[SP] = D
+                @SP
+                A = M
+                M = D
+                // SP++
+                @SP
+                M = M+1
+                """
+            else:
+                asm = f"""//pop temp i
+                // SP--
+                @SP
+                M = M-1
+                // D=RAM[SP]
+                A = M
+                D = M
+                // TEMP[i] = D
+                @{hack.RAM_POSITION_MAP[segment]}
+                A = A+{index}
+                M = D
+                """
+        elif segment == hack.MemorySegments.POINTER:
+            assert index == 0 or index == 1
+            accessed_segment = hack.THAT_POINTER if index else hack.THAT_POINTER
+            if vm.VMCommandTypes.is_push(command):
+                asm = f"""// push pointer index
+                @{accessed_segment}
+                D = M
+                @SP
+                A = M
+                M = D
+                // SP++
+                @SP
+                M = M+1
+                """
+            else:
+                asm = f"""// pop pointer index
+                // SP--
+                @SP 
+                M = M-1
+                // D = RAM[SP]
+                A = M
+                D = M
+                @{accessed_segment}
+                M = D
+                """
         else:
             raise ValueError()
         lines = code_block_to_lines(asm)
