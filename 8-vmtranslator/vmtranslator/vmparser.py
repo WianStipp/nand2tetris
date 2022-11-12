@@ -7,6 +7,9 @@ from vmtranslator import vm
 CMD_TO_TYPE_MAP = {
     "push": vm.VMCommandTypes.C_PUSH,
     "pop": vm.VMCommandTypes.C_POP,
+    "label": vm.VMCommandTypes.C_LABEL,
+    "goto": vm.VMCommandTypes.C_GOTO,
+    "if-goto": vm.VMCommandTypes.C_IF,
     **{m.value: vm.VMCommandTypes.C_ARITHMETIC for m in vm.ArithmeticCommands},
 }
 
@@ -56,7 +59,7 @@ class VMParser:
         """
         if self.command_type() == vm.VMCommandTypes.C_ARITHMETIC:
             return self._current_line
-        _, arg1, _ = self._current_line.split()
+        _, arg1, *_ = self._current_line.split()
         return arg1
 
     def arg2(self) -> int:
@@ -70,4 +73,5 @@ class VMParser:
         with open(self.input_file_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
         lines = [l.strip("\n") for l in lines if not l.startswith("//")]
+        lines = [l.split("//")[0].strip() for l in lines]
         return [l for l in lines if l]

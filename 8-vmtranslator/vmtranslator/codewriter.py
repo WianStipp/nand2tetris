@@ -17,7 +17,8 @@ class ASMCodeWriter:
     def __init__(self, output_file_path: str) -> None:
         self.output = open(output_file_path, "w", encoding="utf-8")
         self._filename = os.path.basename(output_file_path).split(".")[0]
-        self.i = 0
+        self.i = 0  # hacky solution to make sure goto labels are unique :/
+        # self.write_init()
 
     def set_file_name(self, filename: str) -> None:
         """Informs that a translation of a new VM file has started."""
@@ -330,12 +331,31 @@ class ASMCodeWriter:
 
     def write_label(self, label: str) -> None:
         """Writes assembly code that effects the label command."""
+        self._write_lines([f"({label})"])
 
     def write_goto(self, label: str) -> None:
         """Writes assembly code that effects the goto command."""
+        asm = f"""
+                @{label}
+                0;JMP
+                """
+        lines = code_block_to_lines(asm)
+        self._write_lines(lines)
 
     def write_if(self, label: str) -> None:
         """Writes assembly code that effects the if-goto command."""
+        asm = f"""
+            // D = pop stack
+            @SP
+            M=M-1
+            A=M
+            D=M
+            // if D>0, jump to label
+            @{label}
+            D;JGT
+            """
+        lines = code_block_to_lines(asm)
+        self._write_lines(lines)
 
     def write_function(self, function_name: str, num_vars: int) -> None:
         """Writes assembly code that effects the function command."""
@@ -345,6 +365,17 @@ class ASMCodeWriter:
 
     def write_return(self) -> None:
         """Writes assembly code that effects the return command."""
+
+    def write_init(self) -> None:
+        """Write the startup bootstrap code."""
+        asm = """
+                @SP
+                M=256
+                ???
+                """
+        lines = code_block_to_lines(asm)
+        self._write_lines(lines)
+        self.write_call("Sys.init", 0)
 
     def _write_lines(self, lines: List[str]) -> None:
         for line in lines:

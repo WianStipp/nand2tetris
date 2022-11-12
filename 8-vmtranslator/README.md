@@ -25,7 +25,7 @@ Memory Access Tests:
 - [x] StaticTest
 
 Program Flow:
-- [] BasicLoop
+- [X] BasicLoop
 - [] FibonacciSeries
 
 Function Calls:
