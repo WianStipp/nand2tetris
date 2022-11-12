@@ -26,7 +26,7 @@ Memory Access Tests:
 
 Program Flow:
 - [X] BasicLoop
-- [] FibonacciSeries
+- [X] FibonacciSeries
 
 Function Calls:
 - [] SimpleFunction

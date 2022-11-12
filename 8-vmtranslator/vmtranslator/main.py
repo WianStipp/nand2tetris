@@ -33,8 +33,8 @@ def translate_to_hack(input_path: str, output_file_path: Optional[str] = None) -
                 asm_writer.write_arithmetic(parser.arg1())
             elif cmd_is_label_type(cmd_type):
                 asm_writer.write_label(parser.arg1())
-            # elif cmd_is_goto_type(cmd_type):
-            # asm_writer.write_goto(parser.arg1())
+            elif cmd_is_goto_type(cmd_type):
+                asm_writer.write_goto(parser.arg1())
             elif cmd_is_if_type(cmd_type):
                 asm_writer.write_if(parser.arg1())
             else:
