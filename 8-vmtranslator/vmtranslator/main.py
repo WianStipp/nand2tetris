@@ -46,6 +46,8 @@ def translate_to_hack(input_path: str, output_file_path: Optional[str] = None) -
             else:
                 raise ValueError(f"command type: {cmd_type} not recognized.")
     asm_writer.close()
+    # lines = asm_writer.written_lines
+    # lines = [l for l in lines if l.startswith("(")]
 
 
 def list_all_vm_files(dir_path: str) -> List[str]:

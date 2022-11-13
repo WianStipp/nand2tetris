@@ -31,5 +31,5 @@ Program Flow:
 Function Calls:
 - [X] SimpleFunction
 - [X] NestedCall
-- [] FibonacciElement
+- [X] FibonacciElement
 - [] StaticsTest

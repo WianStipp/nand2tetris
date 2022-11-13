@@ -1,6 +1,6 @@
 """Generates Hack assembly code from the parsed VM command."""
 
-from typing import List, Union, Literal
+from typing import List, Union, Literal, Optional
 import os
 
 from vmtranslator import vm, hack
@@ -15,9 +15,12 @@ class ASMCodeWriter:
     """
 
     def __init__(self, output_file_path: str) -> None:
+        self.written_lines: List[str] = []
         self.output = open(output_file_path, "w", encoding="utf-8")
         self._out_filename = os.path.basename(output_file_path).split(".")[0]
         self.i = 0  # hacky solution to make sure goto labels are unique :/
+        self._current_func: Optional[str] = None
+        # self.init_memory()
         self.write_init()
 
     def set_file_name(self, filename: str) -> None:
@@ -332,18 +335,21 @@ class ASMCodeWriter:
 
     def write_label(self, label: str) -> None:
         """Writes assembly code that effects the label command."""
-        self._write_lines([f"({label})"])
+        fname = f"{self._current_func}${label}" if self._current_func else label
+        self._write_lines([f"({fname})"])
 
     def write_goto(self, label: str) -> None:
         """Writes assembly code that effects the goto command."""
+        fname = f"{self._current_func}${label}" if self._current_func else label
         asm = f"""
-                @{label}
+                @{fname}
                 0;JMP
                 """
         self._write_lines(code_block_to_lines(asm))
 
     def write_if(self, label: str) -> None:
         """Writes assembly code that effects the if-goto command."""
+        fname = f"{self._current_func}${label}" if self._current_func else label
         asm = f"""
             // D = pop stack
             @SP
@@ -351,8 +357,8 @@ class ASMCodeWriter:
             A=M
             D=M
             // if D>0, jump to label
-            @{label}
-            D;JGT
+            @{fname}
+            D;JNE
             """
         self._write_lines(code_block_to_lines(asm))
 
@@ -363,6 +369,7 @@ class ASMCodeWriter:
             self.write_push_pop(
                 vm.VMCommandTypes.C_PUSH, hack.MemorySegments.CONSTANT, 0
             )
+        # self._current_func = function_name
 
     def write_call(self, function_name: str, num_args: int) -> None:
         """Writes assembly code that effects the call command.
@@ -507,6 +514,7 @@ class ASMCodeWriter:
                 0;JMP
                 """
         self._write_lines(code_block_to_lines(asm))
+        # self._current_func = None
 
     def write_init(self) -> None:
         """Write the startup bootstrap code."""
@@ -525,12 +533,18 @@ class ASMCodeWriter:
                 continue
             self.output.write(line)
             self.output.write("\n")
+            self.written_lines.append(line)
 
     def close(self) -> None:
         """
         Closes the output file.
         """
         self.output.close()
+
+    def init_memory(self) -> None:
+        asm = """
+                @SP
+                """
 
 
 def code_block_to_lines(block: str) -> List[str]:
