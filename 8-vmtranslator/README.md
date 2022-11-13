@@ -29,7 +29,7 @@ Program Flow:
 - [X] FibonacciSeries
 
 Function Calls:
-- [] SimpleFunction
+- [X] SimpleFunction
 - [] NestedCall
 - [] FibonacciElement
 - [] StaticsTest

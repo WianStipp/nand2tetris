@@ -37,6 +37,10 @@ def translate_to_hack(input_path: str, output_file_path: Optional[str] = None) -
                 asm_writer.write_goto(parser.arg1())
             elif cmd_is_if_type(cmd_type):
                 asm_writer.write_if(parser.arg1())
+            elif cmd_is_function_type(cmd_type):
+                asm_writer.write_function(parser.arg1(), parser.arg2())
+            elif cmd_is_return_type(cmd_type):
+                asm_writer.write_return()
             else:
                 raise ValueError(f"command type: {cmd_type} not recognized.")
     asm_writer.close()
@@ -87,6 +91,16 @@ def cmd_is_goto_type(cmd_type: vm.VMCommandTypes) -> bool:
 def cmd_is_if_type(cmd_type: vm.VMCommandTypes) -> bool:
     """Return True if the cmd_type is label type, else False"""
     return cmd_type == vm.VMCommandTypes.C_IF
+
+
+def cmd_is_function_type(cmd_type: vm.VMCommandTypes) -> bool:
+    """Return True if the cmd_type is function type, else False"""
+    return cmd_type == vm.VMCommandTypes.C_FUNCTION
+
+
+def cmd_is_return_type(cmd_type: vm.VMCommandTypes) -> bool:
+    """Return True if the cmd_type is return type, else False"""
+    return cmd_type == vm.VMCommandTypes.C_RETURN
 
 
 def get_cmdline_args() -> argparse.Namespace:

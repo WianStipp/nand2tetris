@@ -16,12 +16,13 @@ class ASMCodeWriter:
 
     def __init__(self, output_file_path: str) -> None:
         self.output = open(output_file_path, "w", encoding="utf-8")
-        self._filename = os.path.basename(output_file_path).split(".")[0]
+        self._out_filename = os.path.basename(output_file_path).split(".")[0]
         self.i = 0  # hacky solution to make sure goto labels are unique :/
         # self.write_init()
 
     def set_file_name(self, filename: str) -> None:
         """Informs that a translation of a new VM file has started."""
+        self._input_filename = os.path.basename(filename).split(".")[0]
 
     def write_arithmetic(self, command: str) -> None:
         """
@@ -244,7 +245,7 @@ class ASMCodeWriter:
             if vm.VMCommandTypes.is_push(command):
                 asm = f"""//push static i
                 // D = STATIC[i]
-                @{self._filename}.{index}
+                @{self._out_filename}.{index}
                 D=M
                 // put D onto stack
                 @SP
@@ -262,7 +263,7 @@ class ASMCodeWriter:
                 A=M
                 D=M
                 // STATIC[INDEX] = D
-                @{self._filename}.{index}
+                @{self._out_filename}.{index}
                 M=D
                 """
         elif segment == hack.MemorySegments.TEMP:
@@ -339,8 +340,7 @@ class ASMCodeWriter:
                 @{label}
                 0;JMP
                 """
-        lines = code_block_to_lines(asm)
-        self._write_lines(lines)
+        self._write_lines(code_block_to_lines(asm))
 
     def write_if(self, label: str) -> None:
         """Writes assembly code that effects the if-goto command."""
@@ -354,17 +354,101 @@ class ASMCodeWriter:
             @{label}
             D;JGT
             """
-        lines = code_block_to_lines(asm)
-        self._write_lines(lines)
+        self._write_lines(code_block_to_lines(asm))
 
     def write_function(self, function_name: str, num_vars: int) -> None:
         """Writes assembly code that effects the function command."""
+        self.write_label(f"{self._input_filename}.{function_name}")
+        for _ in range(num_vars):
+            self.write_push_pop(
+                vm.VMCommandTypes.C_PUSH, hack.MemorySegments.CONSTANT, 0
+            )
 
     def write_call(self, function_name: str, num_args: int) -> None:
-        """Writes assembly code that effects the call coammnd."""
+        """Writes assembly code that effects the call coammnd.
+        Args:
+            function_name: Name of the function being called.
+            num_args: Number of arguments to call the function with.
+        Returns:
+            None
+        """
+        asm = f"""
+                @SP
+                A=M
+
+                ({self._input_filename}${function_name})
+                """
 
     def write_return(self) -> None:
         """Writes assembly code that effects the return command."""
+        self.i += 1
+        asm = f"""
+                // endFrame = LCL
+                @LCL
+                D=M
+                @endFrame{self.i}
+                M=D
+                // retAttr=*(endFrame - 5)
+                @5
+                D=A
+                @endFrame{self.i}
+                A=M
+                A=A-D
+                D=M
+                @retAttr{self.i}
+                M=D
+                // *ARG=pop()
+                @SP
+                M=M-1
+                A=M
+                D=M
+                @ARG
+                A=M
+                M=D
+                // SP = ARG + 1
+                @ARG
+                D=M+1
+                @SP
+                M=D
+                // THAT = *(endFrame-1)
+                @endFrame{self.i}
+                A=M
+                A=A-1
+                D=M
+                @THAT
+                M=D
+                // THIS = *(endFrame-2)
+                @endFrame{self.i}
+                A=M
+                A=A-1
+                A=A-1
+                D=M
+                @THIS
+                M=D
+                // ARG = *(endFrame-3)
+                @endFrame{self.i}
+                A=M
+                A=A-1
+                A=A-1
+                A=A-1
+                D=M
+                @ARG
+                M=D
+                // LCL = *(endFrame-4)
+                @endFrame{self.i}
+                A=M
+                A=A-1
+                A=A-1
+                A=A-1
+                A=A-1
+                D=M
+                @LCL
+                M=D
+                // goto retAttr
+                @retAttr{self.i}
+                A=M
+                """
+        self._write_lines(code_block_to_lines(asm))
 
     def write_init(self) -> None:
         """Write the startup bootstrap code."""
