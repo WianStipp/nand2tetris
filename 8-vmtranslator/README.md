@@ -8,10 +8,17 @@ Translates from VM code to low-level Jack ASM code.
 $ poetry install
 ```
 
+On a .vm file, to produce `inputFileName.asm`
+
 ```bash
-$ poetry run python inputFileName.vm outputFileName.asm
+$ poetry run python inputFileName.vm
 ```
 
+On a directory of .vm files, to produce `pathToDir.asm`
+
+```bash
+$ poetry run python pathToDir
+```
 
 ### Course Tests
 
