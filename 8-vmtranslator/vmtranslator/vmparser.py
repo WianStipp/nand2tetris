@@ -12,6 +12,7 @@ CMD_TO_TYPE_MAP = {
     "if-goto": vm.VMCommandTypes.C_IF,
     "function": vm.VMCommandTypes.C_FUNCTION,
     "return": vm.VMCommandTypes.C_RETURN,
+    "call": vm.VMCommandTypes.C_CALL,
     **{m.value: vm.VMCommandTypes.C_ARITHMETIC for m in vm.ArithmeticCommands},
 }
 

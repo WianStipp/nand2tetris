@@ -18,7 +18,7 @@ class ASMCodeWriter:
         self.output = open(output_file_path, "w", encoding="utf-8")
         self._out_filename = os.path.basename(output_file_path).split(".")[0]
         self.i = 0  # hacky solution to make sure goto labels are unique :/
-        # self.write_init()
+        self.write_init()
 
     def set_file_name(self, filename: str) -> None:
         """Informs that a translation of a new VM file has started."""
@@ -358,26 +358,83 @@ class ASMCodeWriter:
 
     def write_function(self, function_name: str, num_vars: int) -> None:
         """Writes assembly code that effects the function command."""
-        self.write_label(f"{self._input_filename}.{function_name}")
+        self.write_label(function_name)
         for _ in range(num_vars):
             self.write_push_pop(
                 vm.VMCommandTypes.C_PUSH, hack.MemorySegments.CONSTANT, 0
             )
 
     def write_call(self, function_name: str, num_args: int) -> None:
-        """Writes assembly code that effects the call coammnd.
+        """Writes assembly code that effects the call command.
         Args:
             function_name: Name of the function being called.
             num_args: Number of arguments to call the function with.
         Returns:
             None
         """
+        self.i += 1
         asm = f"""
+                // push returnAddress
+                @{function_name}$ret.{self.i}
+                D=A 
                 @SP
                 A=M
-
-                ({self._input_filename}${function_name})
+                M=D
+                @SP
+                M=M+1
+                // push LCL
+                @LCL
+                D=M
+                @SP
+                A=M
+                M=D
+                @SP
+                M=M+1
+                // push ARG
+                @ARG
+                D=M
+                @SP
+                A=M
+                M=D
+                @SP
+                M=M+1
+                // push THIS
+                @THIS
+                D=M
+                @SP
+                A=M
+                M=D
+                @SP
+                M=M+1
+                // push THAT
+                @THAT
+                D=M
+                @SP
+                A=M
+                M=D
+                @SP
+                M=M+1
+                // ARG = SP - 5 - nArgs
+                @SP
+                D=M
+                @5
+                D=D-A
+                @{num_args}
+                D=D-A
+                @ARG
+                M=D
+                // LCL = SP
+                @SP
+                D=M
+                @LCL
+                M=D
+                // goto functionName
+                @{function_name}
+                0;JMP
+                // insert (returnAddress)
+                ({function_name}$ret.{self.i})
                 """
+        self._write_lines(code_block_to_lines(asm))
 
     def write_return(self) -> None:
         """Writes assembly code that effects the return command."""
@@ -447,18 +504,19 @@ class ASMCodeWriter:
                 // goto retAttr
                 @retAttr{self.i}
                 A=M
+                0;JMP
                 """
         self._write_lines(code_block_to_lines(asm))
 
     def write_init(self) -> None:
         """Write the startup bootstrap code."""
         asm = """
+                @256
+                D=A
                 @SP
-                M=256
-                ???
+                M=D
                 """
-        lines = code_block_to_lines(asm)
-        self._write_lines(lines)
+        self._write_lines(code_block_to_lines(asm))
         self.write_call("Sys.init", 0)
 
     def _write_lines(self, lines: List[str]) -> None:
