@@ -248,7 +248,7 @@ class ASMCodeWriter:
             if vm.VMCommandTypes.is_push(command):
                 asm = f"""//push static i
                 // D = STATIC[i]
-                @{self._out_filename}.{index}
+                @{self._input_filename}.{index}
                 D=M
                 // put D onto stack
                 @SP
@@ -266,7 +266,7 @@ class ASMCodeWriter:
                 A=M
                 D=M
                 // STATIC[INDEX] = D
-                @{self._out_filename}.{index}
+                @{self._input_filename}.{index}
                 M=D
                 """
         elif segment == hack.MemorySegments.TEMP:

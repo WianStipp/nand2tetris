@@ -32,4 +32,4 @@ Function Calls:
 - [X] SimpleFunction
 - [X] NestedCall
 - [X] FibonacciElement
-- [] StaticsTest
+- [X] StaticsTest
