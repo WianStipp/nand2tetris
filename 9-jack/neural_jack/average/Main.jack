@@ -1,0 +1,20 @@
+class Main {
+  function void main() {
+    var Array array;
+    var int length;
+    var int i, sum;
+    
+    let sum = 0;
+    let length = Keyboard.readInt("Number of values to compute average on: ");
+    let array = Array.new(length);
+    while (i < length) {
+      let array[i] = Keyboard.readInt("Next: ");
+      let sum = sum + array[i];
+      let i = i + 1;
+    }
+    do Output.printString("The average: ");
+    do Output.printInt(sum / length);
+    do Output.println();
+    return;
+  }
+}
