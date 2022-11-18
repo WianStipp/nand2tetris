@@ -1,0 +1,102 @@
+function NotAHashMap.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+push constant 7
+call String.new 1
+push constant 110
+call String.appendChar 2
+push constant 117
+call String.appendChar 2
+push constant 108
+call String.appendChar 2
+push constant 108
+call String.appendChar 2
+push constant 107
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 121
+call String.appendChar 2
+push constant 0
+call WordList.new 2
+pop this 0
+push constant 9
+call String.new 1
+push constant 110
+call String.appendChar 2
+push constant 117
+call String.appendChar 2
+push constant 108
+call String.appendChar 2
+push constant 108
+call String.appendChar 2
+push constant 118
+call String.appendChar 2
+push constant 97
+call String.appendChar 2
+push constant 108
+call String.appendChar 2
+push constant 117
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 0
+call WordList.new 2
+pop this 1
+push pointer 0
+return
+function NotAHashMap.add 0
+push argument 0
+pop pointer 0
+push argument 1
+push this 0
+call WordList.new 2
+pop this 0
+push argument 2
+push this 1
+call WordList.new 2
+pop this 1
+push constant 0
+return
+function NotAHashMap.get 2
+push argument 0
+pop pointer 0
+push this 0
+call WordList.getNext 1
+pop local 0
+push this 1
+call WordList.getNext 1
+pop local 1
+label WHILE_EXP0
+push local 0
+call WordList.getWord 1
+push argument 1
+call StringProcessing.stringEquals 2
+not
+not
+if-goto WHILE_END0
+push local 0
+call WordList.getNext 1
+pop local 0
+push local 1
+call WordList.getNext 1
+pop local 1
+goto WHILE_EXP0
+label WHILE_END0
+push local 1
+call WordList.getWord 1
+return
+function NotAHashMap.print 0
+push argument 0
+pop pointer 0
+push this 0
+call WordList.print 1
+pop temp 0
+call Output.println 0
+pop temp 0
+push this 1
+call WordList.print 1
+pop temp 0
+push constant 0
+return

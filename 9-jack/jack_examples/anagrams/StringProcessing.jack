@@ -1,0 +1,20 @@
+class StringProcessing {
+  function boolean stringEquals(String first, String second) {
+    var int len;
+    var int i;
+    var char char1, char2;
+    if (~(first.length() = second.length())) {
+      return false;
+    }
+    let len = first.length();
+    while (i < len) {
+      let char1 = first.charAt(i);
+      let char2 = second.charAt(i);
+      if (~(char1 = char2)) {
+        return false;
+      }
+      let i = i + 1;
+    }
+    return true;
+  }
+}

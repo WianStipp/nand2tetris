@@ -1,0 +1,37 @@
+class NotAHashMap {
+  field WordList keys;
+  field WordList values;
+
+  constructor NotAHashMap new() {
+    let keys = WordList.new("nullkey", null);
+    let values = WordList.new("nullvalue", null);
+    return this;
+  }
+
+  method void add(String key, String value) {
+    let keys = WordList.new(key, keys);
+    let values = WordList.new(value, values);
+    return;
+  }
+
+  method String get(String key) {
+    // look for the value corresponding to the key. Will
+    // crash if the key is not found.
+    var WordList current;
+    var WordList value;
+    let current = keys.getNext();
+    let value = values.getNext();
+    while (~(StringProcessing.stringEquals(current.getWord(), key))) {
+      let current = current.getNext();
+      let value = value.getNext();
+    }
+    return value.getWord();
+  }
+
+  method void print() {
+    do keys.print();
+    do Output.println();
+    do values.print();
+    return;
+  }
+}

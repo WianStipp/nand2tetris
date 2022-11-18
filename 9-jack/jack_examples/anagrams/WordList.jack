@@ -1,0 +1,38 @@
+class WordList {
+  field String word;
+  field WordList next;
+
+  constructor WordList new(String new_word, WordList cdr) {
+    let word = new_word;
+    let next = cdr;
+    return this;
+  }
+
+  method String getWord() {
+    return word;
+  }
+
+  method WordList getNext() {
+    return next;
+  }
+
+  method void print() {
+    var WordList current;
+    let current = this;
+
+    while (~(current = null)) {
+      do Output.printString(current.getWord());
+      do Output.printChar(32); // Print a space
+      let current = current.getNext();
+    }
+    return;
+  }
+  
+  method void dispose() {
+    if (~(next = null)) {
+      do next.dispose();
+    }
+    do Memory.deAlloc(this);
+    return;
+  }
+}

@@ -1,29 +1,33 @@
 class Main {
   function void main() {
-    var Array array;
-    var int length, i;
-    let array = Main.getWords();
-    let length = 9;
-    while (i < length) {
-      do Output.printString(array[i]);
-      do Output.println();
-      let i = i + 1;
-    }
+    var NotAHashMap hashMap;
+    var WordList wordList;
+    var String value;
+
+    let wordList = Main.getWordList();
+    do wordList.print();
+    let hashMap = NotAHashMap.new();
+    do hashMap.add("Hello", "There");
+    do hashMap.add("Helloooo", "Thereeee");
+    do Output.println();
+    let value = hashMap.get("Hello");
+    do Output.println();
+    do Output.printString(value);
     return;
   }
 
-  function Array getWords() {
-    var Array array;
-    let array = Array.new(9);
-    let array[0] = "cat";
-    let array[1] = "ball";
-    let array[2] = "peach";
-    let array[3] = "acehp";
-    let array[4] = "hat";
-    let array[5] = "tab";
-    let array[6] = "tac";
-    let array[7] = "cheap";
-    let array[8] = "act";
-    return array; 
+  function WordList getWordList() {
+    var WordList wordList;
+    let wordList = WordList.new("cat", null);
+    let wordList = WordList.new("ball", wordList);
+    let wordList = WordList.new("peach", wordList);
+    let wordList = WordList.new("acehp", wordList);
+    let wordList = WordList.new("hat", wordList);
+    let wordList = WordList.new("tab", wordList);
+    let wordList = WordList.new("tac", wordList);
+    let wordList = WordList.new("cheap", wordList);
+    let wordList = WordList.new("act", wordList);
+    return wordList;
   }
 }
+
