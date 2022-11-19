@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "jack-compiler"
+version = "0.1.0"
+description = "Compile (high-level) Jack code into VM code"
+authors = ["Wian Stipp <stippwian@gmail.com>"]
+readme = "README.md"
+packages = [{include = "jack_compiler"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
