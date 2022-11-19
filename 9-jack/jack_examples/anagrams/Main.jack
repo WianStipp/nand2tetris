@@ -7,10 +7,12 @@ class Main {
     let wordList = Main.getWordList();
     do wordList.print();
     let hashMap = NotAHashMap.new();
-    do hashMap.add("Hello", "There");
-    do hashMap.add("Helloooo", "Thereeee");
+    let current = wordList.getNext();
+      do hashMap.add(current.getWord)
+    }
     do Output.println();
-    let value = hashMap.get("Hello");
+    let value = hashMap.get("hello");
+    do StringProcessing.insertionSort(value);
     do Output.println();
     do Output.printString(value);
     return;

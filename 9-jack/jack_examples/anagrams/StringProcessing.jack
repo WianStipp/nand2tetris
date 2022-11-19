@@ -17,4 +17,27 @@ class StringProcessing {
     }
     return true;
   }
+
+  function void insertionSort(String input) {
+    var String sortedString;
+    var int strLen, i, j;
+    var char charj, charj_1;
+    let strLen = input.length();
+    let i = 0;
+    while (i < strLen) {
+      let j = i;
+      while (j > 0) {
+        let charj = input.charAt(j);
+        let charj_1 = input.charAt(j-1);
+        if (input.charAt(j) < input.charAt(j-1)) {
+          do input.setCharAt(j, charj_1);  
+          do input.setCharAt(j-1, charj);  
+        }
+        let j = j - 1;
+      }
+      let i = i + 1;
+    }
+    return;
+  }
+
 }

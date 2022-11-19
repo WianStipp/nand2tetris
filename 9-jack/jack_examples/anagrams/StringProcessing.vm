@@ -47,3 +47,72 @@ label WHILE_END0
 push constant 0
 not
 return
+function StringProcessing.insertionSort 6
+push argument 0
+call String.length 1
+pop local 1
+push constant 0
+pop local 2
+label WHILE_EXP0
+push local 2
+push local 1
+lt
+not
+if-goto WHILE_END0
+push local 2
+pop local 3
+label WHILE_EXP1
+push local 3
+push constant 0
+gt
+not
+if-goto WHILE_END1
+push argument 0
+push local 3
+call String.charAt 2
+pop local 4
+push argument 0
+push local 3
+push constant 1
+sub
+call String.charAt 2
+pop local 5
+push argument 0
+push local 3
+call String.charAt 2
+push argument 0
+push local 3
+push constant 1
+sub
+call String.charAt 2
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 0
+push local 3
+push local 5
+call String.setCharAt 3
+pop temp 0
+push argument 0
+push local 3
+push constant 1
+sub
+push local 4
+call String.setCharAt 3
+pop temp 0
+label IF_FALSE0
+push local 3
+push constant 1
+sub
+pop local 3
+goto WHILE_EXP1
+label WHILE_END1
+push local 2
+push constant 1
+add
+pop local 2
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
