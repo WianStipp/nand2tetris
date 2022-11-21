@@ -1,10 +1,13 @@
 """This module contains the CompilationEngine class."""
 
+from jack_compiler import jack_tokenizer
+
 
 class CompilationEngine:
   def __init__(self, input_path: str, output_path: str) -> None:
     self.input_path = input_path
     self.output_path = output_path
+    self.tokenizer = jack_tokenizer.JackTokenizer(self.input_path)
 
   def compile_class(self) -> None:
     """Compiles a complete class."""

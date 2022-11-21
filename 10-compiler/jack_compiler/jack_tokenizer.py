@@ -4,6 +4,9 @@
 class JackTokenizer:
   def __init__(self, file_path: str) -> None:
     self.file_path = file_path
+    with open(self.file_path, 'r', encoding='utf-8') as f:
+      self.lines = [l.replace("\n", "") for l in f.readlines()]
+    self.current_idx: int = 0
 
   def has_more_tokens(self) -> bool:
     """Are there any more tokens in the input?"""
