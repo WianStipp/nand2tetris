@@ -1,1 +1,1 @@
-Compiles (high-level) Jack code into VM code.
+Compiles (high-level) Jack code into VM code (WIP).
