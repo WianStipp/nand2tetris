@@ -1,6 +1,13 @@
 import enum
 
 
+class TokenType(enum.Enum):
+  KEYWORD = 'keyword'
+  SYMBOL = 'symbol'
+  IDENTIFIER = 'identifier'
+  INT_CONST = 'int_constant'
+  STRING_CONST = 'string_const'
+  
 class KeywordTypes(enum.Enum):
   CLASS = "class"
   CONSTRUCTOR = "constructor"

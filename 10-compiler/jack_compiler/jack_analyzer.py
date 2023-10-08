@@ -21,6 +21,7 @@ class JackAnalyzer:
 
 
 def get_jack_source_files(path: str) -> List[str]:
+  """Get the list of Jack files in the input path as a list."""
   is_dir = os.path.isdir(path)
   if is_dir:
     return [p for p in os.listdir(path) if p.endswith(".jack")]
