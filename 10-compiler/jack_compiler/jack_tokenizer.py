@@ -9,9 +9,10 @@ class JackTokenizer:
   def __init__(self, file_path: str) -> None:
     self.file_path = file_path
     with open(self.file_path, 'r', encoding='utf-8') as f:
-      self.input_stream = " ".join([l.replace("\n", "").strip() for l in f.readlines()])
+      self.input_stream = " ".join([l.replace("\n", " ").strip() for l in f.readlines()])
       print(self.input_stream)
-    self._re_keyword_pattern = "|".join([f"\s{v.value}\s" for v in lexicon.KeywordTypes])
+    keywords = [v.value for v in lexicon.KeywordTypes]
+    self._re_keyword_pattern = r"\b(" + "|".join(keywords) + r")\b"
     self._re_symbol_pattern = "|".join([re.escape(v.value) for v in lexicon.Symbols])
     self.advance()
   
@@ -55,8 +56,8 @@ class JackTokenizer:
       span_end = len(self.current_token)
       self._token_type = lexicon.TokenType.IDENTIFIER
     # reset input_stream
+    assert span_end
     self.input_stream = self.input_stream[span_end:].strip()
-    print(self.current_token)
 
   def token_type(self) -> lexicon.TokenType:
     """Return the type of the current token."""
@@ -64,12 +65,18 @@ class JackTokenizer:
 
   def keyword(self) -> lexicon.KeywordTypes:
     """Returns the keyword which is the current token."""
+    assert self.token_type() == lexicon.TokenType.KEYWORD
+    return self.current_token
 
   def symbol(self) -> lexicon.Symbols:
     """Returns the character which is the current token."""
+    assert self.token_type() == lexicon.TokenType.SYMBOL
+    return self.current_token
 
   def identifier(self) -> str:
     """Returns the identifier which is the current token."""
+    assert self.token_type() == lexicon.TokenType.IDENTIFIER
+    return self.current_token
 
   def int_val(self) -> int:
     """Returns the integer value of the current token."""
