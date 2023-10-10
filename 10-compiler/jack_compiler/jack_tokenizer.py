@@ -30,29 +30,29 @@ class JackTokenizer:
     string_cont_match = re.search(r'"[^"]*"', self.input_stream)
     span_end = None
     if keyword_match and keyword_match.span()[0] == 0:
-      self.current_token = lexicon.KeywordTypes(keyword_match.group())
+      self._current_token = lexicon.KeywordTypes(keyword_match.group())
       self._token_type = lexicon.TokenType.KEYWORD
       span_end = keyword_match.span()[1]
     elif symbol_match and symbol_match.span()[0] == 0:
-      self.current_token = lexicon.Symbols(symbol_match.group())
+      self._current_token = lexicon.Symbols(symbol_match.group())
       self._token_type = lexicon.TokenType.SYMBOL
       span_end = symbol_match.span()[1]
     elif int_match and int_match.span()[0] == 0:
-      self.current_token = int(int_match.group())
+      self._current_token = int(int_match.group())
       self._token_type = lexicon.TokenType.INT_CONST
       span_end = int_match.span()[1]
     elif string_cont_match and string_cont_match.span()[0] == 0:
-      self.current_token = string_cont_match.group()
+      self._current_token = string_cont_match.group()
       self._token_type = lexicon.TokenType.STRING_CONST
       span_end = string_cont_match.span()[1]
     else:
       # identifier
       next_match_start = get_min_span_start([keyword_match, symbol_match, int_match, string_cont_match])
       if next_match_start is not None:
-        self.current_token = self.input_stream[:next_match_start].strip()
+        self._current_token = self.input_stream[:next_match_start].strip()
       else:
-        self.current_token = self.input_stream.strip()
-      span_end = len(self.current_token)
+        self._current_token = self.input_stream.strip()
+      span_end = len(self._current_token)
       self._token_type = lexicon.TokenType.IDENTIFIER
     # reset input_stream
     assert span_end
@@ -65,27 +65,27 @@ class JackTokenizer:
   def keyword(self) -> lexicon.KeywordTypes:
     """Returns the keyword which is the current token."""
     assert self.token_type() == lexicon.TokenType.KEYWORD
-    return self.current_token
+    return self._current_token
 
   def symbol(self) -> lexicon.Symbols:
     """Returns the character which is the current token."""
     assert self.token_type() == lexicon.TokenType.SYMBOL
-    return self.current_token
+    return self._current_token
 
   def identifier(self) -> str:
     """Returns the identifier which is the current token."""
     assert self.token_type() == lexicon.TokenType.IDENTIFIER
-    return self.current_token
+    return self._current_token
 
   def int_val(self) -> int:
     """Returns the integer value of the current token."""
     assert self.token_type() == lexicon.TokenType.INT_CONST
-    return self.current_token
+    return self._current_token
 
   def string_val(self) -> str:
     """Returns the string value of the current token."""
     assert self.token_type() == lexicon.TokenType.STRING_CONST
-    return self.current_token
+    return self._current_token
 
 def get_min_span_start(matches: List[Optional[re.Match]]) -> int:
   min_start: Optional[int] = None

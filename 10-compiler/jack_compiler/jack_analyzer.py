@@ -3,7 +3,7 @@
 from typing import List
 import os
 
-from jack_compiler import compilation_engine, jack_tokenizer
+from jack_compiler.compilation import xml_compilation
 
 
 class JackAnalyzer:
@@ -16,7 +16,7 @@ class JackAnalyzer:
     for source_file in source_files:
       output_path = get_output_path(source_file)
       print(f"compiling {source_file} into {output_path}")
-      compiler = compilation_engine.CompilationEngine(source_file, output_path)
+      compiler = xml_compilation.XMLCompilationEngine(source_file, output_path)
       compiler.compile_class()
 
 
