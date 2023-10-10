@@ -10,7 +10,6 @@ class JackTokenizer:
     self.file_path = file_path
     with open(self.file_path, 'r', encoding='utf-8') as f:
       self.input_stream = " ".join([l.replace("\n", " ").strip() for l in f.readlines()])
-      print(self.input_stream)
     keywords = [v.value for v in lexicon.KeywordTypes]
     self._re_keyword_pattern = r"\b(" + "|".join(keywords) + r")\b"
     self._re_symbol_pattern = "|".join([re.escape(v.value) for v in lexicon.Symbols])
