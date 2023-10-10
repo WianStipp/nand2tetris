@@ -8,6 +8,8 @@ class CompilationEngine:
     self.input_path = input_path
     self.output_path = output_path
     self.tokenizer = jack_tokenizer.JackTokenizer(self.input_path)
+    while self.tokenizer.has_more_tokens():
+      self.tokenizer.advance()
 
   def compile_class(self) -> None:
     """Compiles a complete class."""
