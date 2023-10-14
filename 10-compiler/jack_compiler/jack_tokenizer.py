@@ -9,11 +9,13 @@ class JackTokenizer:
   def __init__(self, file_path: str) -> None:
     self.file_path = file_path
     with open(self.file_path, 'r', encoding='utf-8') as f:
-      self.input_stream = " ".join([l.replace("\n", " ").strip() for l in f.readlines()])
+      lines = f.readlines()
+    lines = [line.split("//")[0] for line in lines if not line.strip().startswith("/")]
+    self.input_stream = " ".join([l.replace("\n", " ").strip() for l in lines if l.replace("\n", " ").strip()])
     keywords = [v.value for v in lexicon.KeywordTypes]
     self._re_keyword_pattern = r"\b(" + "|".join(keywords) + r")\b"
     self._re_symbol_pattern = "|".join([re.escape(v.value) for v in lexicon.Symbols])
-    self.advance()
+    # self.advance()
   
   def has_more_tokens(self) -> bool:
     """Are there any more tokens in the input?"""
@@ -42,12 +44,12 @@ class JackTokenizer:
       self._token_type = lexicon.TokenType.INT_CONST
       span_end = int_match.span()[1]
     elif string_cont_match and string_cont_match.span()[0] == 0:
-      self._current_token = string_cont_match.group()
+      self._current_token = string_cont_match.group().strip('"')
       self._token_type = lexicon.TokenType.STRING_CONST
       span_end = string_cont_match.span()[1]
     else:
       # identifier
-      next_match_start = get_min_span_start([keyword_match, symbol_match, int_match, string_cont_match])
+      next_match_start = self._get_min_span_start([keyword_match, symbol_match, int_match, string_cont_match])
       if next_match_start is not None:
         self._current_token = self.input_stream[:next_match_start].strip()
       else:
@@ -55,7 +57,7 @@ class JackTokenizer:
       span_end = len(self._current_token)
       self._token_type = lexicon.TokenType.IDENTIFIER
     # reset input_stream
-    assert span_end
+    assert span_end is not None
     self.input_stream = self.input_stream[span_end:].strip()
 
   def token_type(self) -> lexicon.TokenType:
@@ -87,14 +89,14 @@ class JackTokenizer:
     assert self.token_type() == lexicon.TokenType.STRING_CONST
     return self._current_token
 
-def get_min_span_start(matches: List[Optional[re.Match]]) -> int:
-  min_start: Optional[int] = None
-  for match in matches:
-    if not match:
-      continue
-    match_start = match.span()[0]
-    if min_start is None:
-      min_start = match_start
-    else:
-      min_start = min(min_start, match_start)
-  return min_start
+  def _get_min_span_start(self, matches: List[Optional[re.Match]]) -> int:
+    min_start = self.input_stream.find(" ")
+    for match in matches:
+      if not match:
+        continue
+      match_start = match.span()[0]
+      if min_start is None:
+        min_start = match_start
+      else:
+        min_start = min(min_start, match_start)
+    return min_start

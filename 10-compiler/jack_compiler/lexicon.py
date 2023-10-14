@@ -1,14 +1,14 @@
 import enum
 
 
-class TokenType(enum.Enum):
+class TokenType(str, enum.Enum):
   KEYWORD = 'keyword'
   SYMBOL = 'symbol'
   IDENTIFIER = 'identifier'
   INT_CONST = 'int_constant'
   STRING_CONST = 'string_const'
   
-class KeywordTypes(enum.Enum):
+class KeywordTypes(str, enum.Enum):
   CLASS = "class"
   CONSTRUCTOR = "constructor"
   FUNCTION = "function"
@@ -32,7 +32,7 @@ class KeywordTypes(enum.Enum):
   RETURN = 'return'
 
 
-class Symbols(enum.Enum):
+class Symbols(str, enum.Enum):
   LEFT_CURLY = "{"
   RIGHT_CURLY = "}"
   LEFT_PAREN = "("

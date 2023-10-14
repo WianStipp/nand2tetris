@@ -8,6 +8,8 @@ packages = [{include = "jack_compiler"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+lxml = "^4.9.3"
+pytest = "^7.4.2"
 
 
 [build-system]
