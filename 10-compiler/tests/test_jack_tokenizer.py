@@ -5,6 +5,11 @@ from jack_compiler.lexicon import KeywordTypes, Symbols, TokenType
 
 PATH_TO_SQUARE_JACK = '../../official_nand2tetris/nand2tetris/projects/10/Square/Main.jack'
 PATH_TO_SQUARE_XML = '../../official_nand2tetris/nand2tetris/projects/10/Square/MainT.xml'
+PATH_TO_ARRAYTEST_JACK = '../../official_nand2tetris/nand2tetris/projects/10/ArrayTest/Main.jack'
+PATH_TO_ARRAYTEST_XML = '../../official_nand2tetris/nand2tetris/projects/10/ArrayTest/MainT.xml'
+PATH_TO_EXPRESSIONLESSSQUARE_JACK = '../../official_nand2tetris/nand2tetris/projects/10/ExpressionLessSquare/Main.jack'
+PATH_TO_EXPRESSIONLESSSQUARE_XML = '../../official_nand2tetris/nand2tetris/projects/10/ExpressionLessSquare/MainT.xml'
+
 
 class TokenizerXmlTester:
     def __init__(self, tokenizer: JackTokenizer) -> None:
@@ -34,7 +39,7 @@ class TokenizerXmlTester:
             root.append(e)
         return root
     
-def test_jack_tokenizer():
+def test_square_tokenization():
     tokenizer = JackTokenizer(PATH_TO_SQUARE_JACK)
     tester = TokenizerXmlTester(tokenizer)
     with open(PATH_TO_SQUARE_XML, 'r') as f:
@@ -45,5 +50,24 @@ def test_jack_tokenizer():
     tokenized_lines = [e.strip() for e in tokenized.split('\n')[1:-2]]
     assert tokenized_lines == answer_lines
 
-if __name__ == "__main__":
-    test_jack_tokenizer()
+def test_arraytest_tokenization():
+    tokenizer = JackTokenizer(PATH_TO_ARRAYTEST_JACK)
+    tester = TokenizerXmlTester(tokenizer)
+    with open(PATH_TO_ARRAYTEST_XML, 'r') as f:
+        answer = et.fromstring(f.read())
+        answer = et.tostring(answer).decode()
+    answer_lines = answer.split("\n")[1:-1]
+    tokenized = et.tostring(tester.emit_xml(), pretty_print=True).decode()
+    tokenized_lines = [e.strip() for e in tokenized.split('\n')[1:-2]]
+    assert tokenized_lines == answer_lines
+
+def test_expressionless_square_tokenization():
+    tokenizer = JackTokenizer(PATH_TO_EXPRESSIONLESSSQUARE_JACK)
+    tester = TokenizerXmlTester(tokenizer)
+    with open(PATH_TO_EXPRESSIONLESSSQUARE_XML, 'r') as f:
+        answer = et.fromstring(f.read())
+        answer = et.tostring(answer).decode()
+    answer_lines = answer.split("\n")[1:-1]
+    tokenized = et.tostring(tester.emit_xml(), pretty_print=True).decode()
+    tokenized_lines = [e.strip() for e in tokenized.split('\n')[1:-2]]
+    assert tokenized_lines == answer_lines
