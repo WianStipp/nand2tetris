@@ -9,8 +9,10 @@ class JackTokenizer:
   def __init__(self, file_path: str) -> None:
     self.file_path = file_path
     with open(self.file_path, 'r', encoding='utf-8') as f:
-      lines = f.readlines()
-    lines = [line.split("//")[0] for line in lines if not line.strip().startswith("/")]
+      text = f.read()
+    text = re.sub(r'/\*\*.*?\*/', '', text, flags=re.DOTALL) # remove multiline comments
+    lines = text.split("\n")
+    lines = [line.split("//")[0] for line in lines if not line.strip().startswith("/")] # remove single line comments
     self.input_stream = " ".join([l.replace("\n", " ").strip() for l in lines if l.replace("\n", " ").strip()])
     keywords = [v.value for v in lexicon.KeywordTypes]
     self._re_keyword_pattern = r"\b(" + "|".join(keywords) + r")\b"

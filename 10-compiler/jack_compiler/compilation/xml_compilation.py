@@ -1,6 +1,6 @@
 """This module contains an XML Compilation Engine."""
 
-import xml.etree.ElementTree as ET
+from lxml import etree as et
 
 from jack_compiler.compilation import base
 from jack_compiler import jack_tokenizer, lexicon
@@ -11,18 +11,15 @@ class XMLCompilationEngine(base.CompilationEngine):
     self.output_path = output_path
     self.tokenizer = jack_tokenizer.JackTokenizer(self.input_path)
     self._f = open(self.output_path, "wb")
-    self._f.write(b'<?xml version="1.0" encoding="UTF-8"?>\n')
     self._curr_element = None
 
   def compile_class(self) -> None:
     assert self.tokenizer.keyword() == lexicon.KeywordTypes.CLASS
-    self._curr_element = ET.Element("class")
-    self._f.write(b'<class>\n')
-    self._curr_element = ET.SubElement(self._curr_element, 'keyword')
-    self._curr_element.text = 'class'
-    self._f.write(ET.tostring(self._curr_element))
+    self._curr_element = et.Element("class")
+    class_element = et.SubElement(self._curr_element, 'keyword')
+    class_element.text = 'class'
     self.tokenizer.advance()
-    self._curr_element = ET.SubElement(self._curr_element, "tex")
+    self._curr_element = et.SubElement(self._curr_element, "text")
     self._curr_element.text = self.tokenizer.identifier()
     self._f.write(ET.tostring(self._curr_element))
     self._f.write(b'\n')

@@ -1,14 +1,14 @@
+from typing import Tuple, List
+import os
+import glob
 from lxml import etree as et
 
 from jack_compiler.jack_tokenizer import JackTokenizer
-from jack_compiler.lexicon import KeywordTypes, Symbols, TokenType
+from jack_compiler.lexicon import TokenType
 
-PATH_TO_SQUARE_JACK = '../../official_nand2tetris/nand2tetris/projects/10/Square/Main.jack'
-PATH_TO_SQUARE_XML = '../../official_nand2tetris/nand2tetris/projects/10/Square/MainT.xml'
-PATH_TO_ARRAYTEST_JACK = '../../official_nand2tetris/nand2tetris/projects/10/ArrayTest/Main.jack'
-PATH_TO_ARRAYTEST_XML = '../../official_nand2tetris/nand2tetris/projects/10/ArrayTest/MainT.xml'
-PATH_TO_EXPRESSIONLESSSQUARE_JACK = '../../official_nand2tetris/nand2tetris/projects/10/ExpressionLessSquare/Main.jack'
-PATH_TO_EXPRESSIONLESSSQUARE_XML = '../../official_nand2tetris/nand2tetris/projects/10/ExpressionLessSquare/MainT.xml'
+ARRAYTEST_DIR_PATH = '../../official_nand2tetris/nand2tetris/projects/10/ArrayTest'
+SQUARE_DIR_PATH = '../../official_nand2tetris/nand2tetris/projects/10/Square'
+EXPRESSIONLESS_SQUARE_PATH = '../../official_nand2tetris/nand2tetris/projects/10/ExpressionLessSqure'
 
 
 class TokenizerXmlTester:
@@ -38,36 +38,36 @@ class TokenizerXmlTester:
                 raise ValueError(f"Didn't recognize token type {self.tokenizer.token_type=}")
             root.append(e)
         return root
+
+def get_inputs_and_expected_paths(dir_path: str) -> List[Tuple[str, str]]:
+    jack_files = glob.glob(f"{dir_path}/*.jack")
+    token_xml_files = [path.replace('.jack', 'T.xml') for path in jack_files]
+    return list(zip(jack_files, token_xml_files))
     
-def test_square_tokenization():
-    tokenizer = JackTokenizer(PATH_TO_SQUARE_JACK)
+    
+def check_tokenization(input_path: str, output_path: str):
+    tokenizer = JackTokenizer(input_path)
     tester = TokenizerXmlTester(tokenizer)
-    with open(PATH_TO_SQUARE_XML, 'r') as f:
+    with open(output_path, 'r') as f:
         answer = et.fromstring(f.read())
         answer = et.tostring(answer).decode()
     answer_lines = answer.split("\n")[1:-1]
     tokenized = et.tostring(tester.emit_xml(), pretty_print=True).decode()
     tokenized_lines = [e.strip() for e in tokenized.split('\n')[1:-2]]
     assert tokenized_lines == answer_lines
+
+def test_square_tokenization():
+    paths = get_inputs_and_expected_paths(SQUARE_DIR_PATH)
+    for input_, out in paths:
+        check_tokenization(input_, out)
 
 def test_arraytest_tokenization():
-    tokenizer = JackTokenizer(PATH_TO_ARRAYTEST_JACK)
-    tester = TokenizerXmlTester(tokenizer)
-    with open(PATH_TO_ARRAYTEST_XML, 'r') as f:
-        answer = et.fromstring(f.read())
-        answer = et.tostring(answer).decode()
-    answer_lines = answer.split("\n")[1:-1]
-    tokenized = et.tostring(tester.emit_xml(), pretty_print=True).decode()
-    tokenized_lines = [e.strip() for e in tokenized.split('\n')[1:-2]]
-    assert tokenized_lines == answer_lines
+    paths = get_inputs_and_expected_paths(ARRAYTEST_DIR_PATH)
+    for input_, out in paths:
+        check_tokenization(input_, out)
+
 
 def test_expressionless_square_tokenization():
-    tokenizer = JackTokenizer(PATH_TO_EXPRESSIONLESSSQUARE_JACK)
-    tester = TokenizerXmlTester(tokenizer)
-    with open(PATH_TO_EXPRESSIONLESSSQUARE_XML, 'r') as f:
-        answer = et.fromstring(f.read())
-        answer = et.tostring(answer).decode()
-    answer_lines = answer.split("\n")[1:-1]
-    tokenized = et.tostring(tester.emit_xml(), pretty_print=True).decode()
-    tokenized_lines = [e.strip() for e in tokenized.split('\n')[1:-2]]
-    assert tokenized_lines == answer_lines
+    paths = get_inputs_and_expected_paths(EXPRESSIONLESS_SQUARE_PATH)
+    for input_, out in paths:
+        check_tokenization(input_, out)
