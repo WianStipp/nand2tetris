@@ -57,4 +57,7 @@ class Symbols(str, enum.Enum):
   def is_op(cls, v: 'Symbols'):
     return v in [cls.PLUS, cls.MINUS, cls.ASTERISK, cls.FORWARD_SLASH \
                  , cls.AMPERSAND, cls.PIPE, cls.LT, cls.GT, cls.EQ, cls.TILDA]
+  @classmethod
+  def is_unary_op(cls, v: 'Symbols'):
+    return v in [cls.MINUS, cls.TILDA]
 

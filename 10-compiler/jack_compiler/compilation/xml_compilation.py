@@ -245,11 +245,15 @@ class XMLCompilationEngine(base.CompilationEngine):
         self.tokenizer.symbol() == lexicon.Symbols.LEFT_SQR_PAREN:
         left_paran = et.SubElement(let_statement, 'symbol')
         left_paran.text = f" {self.tokenizer.symbol()} "
-        self.compile_expression()
         self.tokenizer.advance()
+        temp = self._parent_element
+        self._parent_element = let_statement
+        self.compile_expression()
+        self._parent_element = temp
         assert self.tokenizer.symbol() == lexicon.Symbols.RIGHT_SQR_PAREN
         right_paran = et.SubElement(let_statement, 'symbol')
         right_paran.text = f" {self.tokenizer.symbol()} "
+        self.tokenizer.advance()
     eq = et.SubElement(let_statement, 'symbol')
     eq.text = f" {self.tokenizer.symbol()} "
     self.tokenizer.advance()
@@ -397,7 +401,8 @@ class XMLCompilationEngine(base.CompilationEngine):
     temp = self._parent_element
     self._parent_element = expression
     self.compile_term()
-    while lexicon.Symbols.is_op(self.tokenizer.token_type()):
+    while self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+          lexicon.Symbols.is_op(self.tokenizer.symbol()):
       op = et.SubElement(expression, 'symbol')
       op.text = f" {self.tokenizer.symbol()} "
       self.tokenizer.advance()
@@ -430,6 +435,7 @@ class XMLCompilationEngine(base.CompilationEngine):
           self.compile_expression()
           close_paren = et.SubElement(term, 'symbol')
           close_paren.text = f" {self.tokenizer.symbol()} "
+          self.tokenizer.advance()
     elif self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
       term_name = et.SubElement(term, 'keyword')
       term_name.text = f" {self.tokenizer.keyword()} "
@@ -452,7 +458,7 @@ class XMLCompilationEngine(base.CompilationEngine):
       close_paren.text = f" {self.tokenizer.symbol()} "
       self.tokenizer.advance()
     elif self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
-        lexicon.Symbols.is_op(self.tokenizer.symbol()):
+        self.tokenizer.symbol() == lexicon.Symbols.is_unary_op(self.tokenizer.symbol()):
       op = et.SubElement(term, 'symbol')
       op.text = f" {self.tokenizer.symbol()} "
       self.tokenizer.advance()
