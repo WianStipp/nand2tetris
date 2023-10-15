@@ -50,4 +50,5 @@ class SymbolTable:
 
   def index_of(self, name: str) -> int:
     """Return the index of the named variable."""
-    return list(self.data.keys()).index(name)
+    return self.data[name].count
+    # return list(self.data.keys()).index(name)

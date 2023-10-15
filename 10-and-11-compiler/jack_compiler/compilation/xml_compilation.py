@@ -4,18 +4,20 @@ from lxml import etree as et
 import xml.etree.ElementTree as ET
 import copy
 
-from jack_compiler.compilation import base
+from jack_compiler.compilation import base, symbol_table
 from jack_compiler import jack_tokenizer, lexicon
 
 parser = et.XMLParser(remove_blank_text=True)
 
 class XMLCompilationEngine(base.CompilationEngine):
-  def __init__(self, input_path: str, output_path: str) -> None:
+  def __init__(self, input_path: str, output_path: str, display_symbol_table: bool= False) -> None:
     self.input_path = input_path
     self.output_path = output_path
     self.tokenizer = jack_tokenizer.JackTokenizer(self.input_path)
     self.tokenizer.advance()
     self._parent_element = None
+    if display_symbol_table:
+      raise NotImplementedError("Haven't implemented symbol table display")
 
   def compile_class(self) -> None:
     assert self.tokenizer.keyword() == lexicon.KeywordTypes.CLASS

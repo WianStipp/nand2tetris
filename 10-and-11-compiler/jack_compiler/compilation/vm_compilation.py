@@ -1,12 +1,16 @@
 """This module contains the VM Compilation Engine which translated Jack to VM Code."""
 
-import abc
+from jack_compiler.compilation import base
+from jack_compiler.compilation import symbol_table
 
-from jack_compiler.compilation.base import CompilationEngine
+class VMCompilationEngine(base.CompilationEngine):
+  def __init__(self, input_path: str, output_path: str) -> None:
+    super().__init__(input_path, output_path)
 
-class VMCompilationEngine(CompilationEngine):
   def compile_class(self) -> None:
     """Compiles a complete class."""
+    self.class_sym_table = symbol_table.SymbolTable()
+    self.method_sym_table = symbol_table.SymbolTable()
 
   def compile_class_var_dec(self) -> None:
     """Compiles a static variable or class variable declaration."""
