@@ -24,9 +24,9 @@ def test_expressionless_compilation(jack, expected_xml):
 def test_arratest_compilation(jack, expected_xml):
   assert simple_xml_eq_check(jack, expected_xml)
 
-# @pytest.mark.parametrize("jack, expected_xml", get_inputs_and_expected_paths(SQUARE_DIR_PATH))
-# def test_arratest_compilation(jack, expected_xml):
-#   assert simple_xml_eq_check(jack, expected_xml)
+@pytest.mark.parametrize("jack, expected_xml", get_inputs_and_expected_paths(SQUARE_DIR_PATH))
+def test_arratest_compilation(jack, expected_xml):
+  assert simple_xml_eq_check(jack, expected_xml)
 
 def simple_xml_eq_check(file1, file2):
   compiler = XMLCompilationEngine(file1, "tmp1")

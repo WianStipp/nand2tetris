@@ -475,7 +475,8 @@ class XMLCompilationEngine(base.CompilationEngine):
     temp = self._parent_element
     self._parent_element = expression_list
     if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL:
-      return
+      if not self.tokenizer.symbol() == lexicon.Symbols.LEFT_PAREN:
+        return
     self.compile_expression()
     while self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and self.tokenizer.symbol() == lexicon.Symbols.COMMA:
       comma = et.SubElement(expression_list, 'symbol')
