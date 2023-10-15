@@ -2,6 +2,7 @@
 
 from lxml import etree as et
 import xml.etree.ElementTree as ET
+import copy
 
 from jack_compiler.compilation import base
 from jack_compiler import jack_tokenizer, lexicon
@@ -396,20 +397,69 @@ class XMLCompilationEngine(base.CompilationEngine):
     temp = self._parent_element
     self._parent_element = expression
     self.compile_term()
+    while lexicon.Symbols.is_op(self.tokenizer.token_type()):
+      op = et.SubElement(expression, 'symbol')
+      op.text = f" {self.tokenizer.symbol()} "
+      self.tokenizer.advance()
+      self.compile_term()
     self._parent_element = temp
 
   def compile_term(self) -> None:
     """Compiles a term. Must do lookahead (LL2)."""
     term = et.SubElement(self._parent_element, 'term')   
+    temp = self._parent_element
+    self._parent_element = term
     if self.tokenizer.token_type() == lexicon.TokenType.IDENTIFIER:
-      term_name = et.SubElement(term, 'identifier')
-      term_name.text = f" {self.tokenizer.identifier()} "
+      # need LL(2)
+      lookahead_tokenizer = copy.deepcopy(self.tokenizer)
+      lookahead_tokenizer.advance()
+      # a subroutine call
+      if lookahead_tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+          lookahead_tokenizer.symbol() in {lexicon.Symbols.LEFT_PAREN, lexicon.Symbols.PERIOD}:
+        self.compile_subroutine_call()
+        self.tokenizer.advance()
+      else:
+        term_name = et.SubElement(term, 'identifier')
+        term_name.text = f" {self.tokenizer.identifier()} "
+        self.tokenizer.advance()
+        if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+            self.tokenizer.symbol() == lexicon.Symbols.LEFT_SQR_PAREN:
+          open_paren = et.SubElement(term, 'symbol')
+          open_paren.text = f" {self.tokenizer.symbol()} "
+          self.tokenizer.advance()
+          self.compile_expression()
+          close_paren = et.SubElement(term, 'symbol')
+          close_paren.text = f" {self.tokenizer.symbol()} "
     elif self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
       term_name = et.SubElement(term, 'keyword')
       term_name.text = f" {self.tokenizer.keyword()} "
+      self.tokenizer.advance()
+    elif self.tokenizer.token_type() == lexicon.TokenType.INT_CONST:
+      int_val = et.SubElement(term, 'integerConstant')
+      int_val.text = f" {self.tokenizer.int_val()} "
+      self.tokenizer.advance()
+    elif self.tokenizer.token_type() == lexicon.TokenType.STRING_CONST:
+      str_val = et.SubElement(term, 'stringConstant')
+      str_val.text = f" {self.tokenizer.string_val()} "
+      self.tokenizer.advance()
+    elif self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+        self.tokenizer.symbol() == lexicon.Symbols.LEFT_PAREN:
+      open_paren = et.SubElement(term, 'symbol')
+      open_paren.text = f" {self.tokenizer.symbol()} "
+      self.tokenizer.advance()
+      self.compile_expression()
+      close_paren = et.SubElement(term, 'symbol')
+      close_paren.text = f" {self.tokenizer.symbol()} "
+      self.tokenizer.advance()
+    elif self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+        lexicon.Symbols.is_op(self.tokenizer.symbol()):
+      op = et.SubElement(term, 'symbol')
+      op.text = f" {self.tokenizer.symbol()} "
+      self.tokenizer.advance()
+      self.compile_term()
     else:
       raise NotImplementedError()
-    self.tokenizer.advance()
+    self._parent_element = temp
 
 
   def compile_expression_list(self) -> None:
@@ -445,4 +495,3 @@ def simple_xml_eq_check(file1, file2):
 if __name__ == "__main__":
   compiler = XMLCompilationEngine('/Users/wianstipp/Desktop/projects/official_nand2tetris/nand2tetris/projects/10/ExpressionLessSquare/Main.jack', "ts")
   compiler.compile_class()
-

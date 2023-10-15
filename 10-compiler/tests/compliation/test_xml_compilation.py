@@ -8,6 +8,8 @@ from jack_compiler.compilation.xml_compilation import XMLCompilationEngine
 from jack_compiler.jack_tokenizer import JackTokenizer
 
 EXPRESSIONLESS_SQUARE_PATH = '../../official_nand2tetris/nand2tetris/projects/10/ExpressionLessSquare'
+ARRAYTEST_DIR_PATH = '../../official_nand2tetris/nand2tetris/projects/10/ArrayTest'
+SQUARE_DIR_PATH = '../../official_nand2tetris/nand2tetris/projects/10/Square'
 
 def get_inputs_and_expected_paths(dir_path: str) -> List[Tuple[str, str]]:
     jack_files = glob.glob(f"{dir_path}/*.jack")
@@ -37,6 +39,7 @@ def simple_xml_eq_check(file1, file2):
 
 
 if __name__ == "__main__":
+  # paths = get_inputs_and_expected_paths(ARRAYTEST_DIR_PATH)[::-1]
   paths = get_inputs_and_expected_paths(EXPRESSIONLESS_SQUARE_PATH)[::-1]
   for input_, expected in paths:
      print(input_)

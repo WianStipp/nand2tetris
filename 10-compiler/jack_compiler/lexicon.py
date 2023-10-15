@@ -52,3 +52,9 @@ class Symbols(str, enum.Enum):
   GT = ">"
   EQ = "="
   TILDA = "~"
+
+  @classmethod
+  def is_op(cls, v: 'Symbols'):
+    return v in [cls.PLUS, cls.MINUS, cls.ASTERISK, cls.FORWARD_SLASH \
+                 , cls.AMPERSAND, cls.PIPE, cls.LT, cls.GT, cls.EQ, cls.TILDA]
+
