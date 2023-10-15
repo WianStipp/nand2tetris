@@ -230,8 +230,39 @@ class XMLCompilationEngine(base.CompilationEngine):
 
   def compile_if(self) -> None:
     """Compiles an if statement."""
-    subroutine_body = et.SubElement(self._parent_element, 'ifStatement')   
-    raise NotImplementedError()
+    if_statement = et.SubElement(self._parent_element, 'ifStatement')   
+    if_kw = et.SubElement(if_statement, 'keyword')
+    if_kw.text = f" {self.tokenizer.keyword()} "
+    self.tokenizer.advance()
+    open_paran = et.SubElement(if_statement, 'symbol')
+    open_paran.text = f" {self.tokenizer.symbol()} "
+    self.tokenizer.advance()
+    self.compile_expression()
+    close_paran = et.SubElement(if_statement, 'symbol')
+    close_paran.text = f" {self.tokenizer.symbol()} "
+    self.tokenizer.advance()
+
+    open_paran = et.SubElement(if_statement, 'symbol')
+    open_paran.text = f" {self.tokenizer.symbol()} "
+    self.tokenizer.advance()
+    self.compile_statements()
+    close_paran = et.SubElement(if_statement, 'symbol')
+    close_paran.text = f" {self.tokenizer.symbol()} "
+    self.tokenizer.advance()
+
+    if self.tokenizer.token_type() == lexicon.TokenType.KEYWORD and \
+        self.tokenizer.keyword() == lexicon.KeywordTypes.ELSE:
+      else_kw = et.SubElement(if_statement, 'keyword')
+      else_kw.text = f" {self.tokenizer.keyword()} "
+      self.tokenizer.advance()
+      open_paran = et.SubElement(if_statement, 'symbol')
+      open_paran.text = f" {self.tokenizer.symbol()} "
+      self.tokenizer.advance()
+      self.compile_statements()
+      close_paran = et.SubElement(if_statement, 'symbol')
+      close_paran.text = f" {self.tokenizer.symbol()} "
+      self.tokenizer.advance()
+
 
   def compile_while(self) -> None:
     """Compiles a while statement."""
