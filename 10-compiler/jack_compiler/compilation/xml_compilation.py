@@ -2,7 +2,6 @@
 
 from lxml import etree as et
 import xml.etree.ElementTree as ET
-from xml.dom import minidom
 
 from jack_compiler.compilation import base
 from jack_compiler import jack_tokenizer, lexicon
@@ -73,7 +72,7 @@ class XMLCompilationEngine(base.CompilationEngine):
       comma.text = f" {self.tokenizer.symbol().value} "
       self.tokenizer.advance()
       varname = et.SubElement(classvardec, 'identifier')
-      varname.text = f" {self.tokenizer.identifier().value} "
+      varname.text = f" {self.tokenizer.identifier()} "
       self.tokenizer.advance()
     endline = et.SubElement(classvardec, 'symbol')
     endline.text = f" {self.tokenizer.symbol().value} "
@@ -188,7 +187,6 @@ class XMLCompilationEngine(base.CompilationEngine):
     subroutine_body = et.SubElement(self._parent_element, 'statements')   
     self._parent_element = subroutine_body
     while True:
-      print('cur', self.tokenizer._current_token)
       if self.tokenizer.token_type() != lexicon.TokenType.KEYWORD:
         break
       if self.tokenizer.keyword() == lexicon.KeywordTypes.LET:
@@ -360,6 +358,14 @@ def get_element_tree_string(element: et.Element) -> str:
 def print_tree(element: et.Element) -> None:
     print(get_element_tree_string(element))
 
+def simple_xml_eq_check(file1, file2):
+  tree1 = ET.parse(file1)
+  tree2 = ET.parse(file2)
+  elements1 = [(el.tag, el.text.strip()) for el in tree1.iter()]
+  elements2 = [(el.tag, el.text.strip()) for el in tree2.iter()]
+  return elements1 == elements2
+
 if __name__ == "__main__":
   compiler = XMLCompilationEngine('/Users/wianstipp/Desktop/projects/official_nand2tetris/nand2tetris/projects/10/ExpressionLessSquare/Main.jack', "ts")
   compiler.compile_class()
+

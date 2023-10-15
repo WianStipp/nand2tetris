@@ -1,5 +1,4 @@
 from typing import Tuple, List
-import os
 import glob
 from lxml import etree as et
 
@@ -8,7 +7,7 @@ from jack_compiler.lexicon import TokenType
 
 ARRAYTEST_DIR_PATH = '../../official_nand2tetris/nand2tetris/projects/10/ArrayTest'
 SQUARE_DIR_PATH = '../../official_nand2tetris/nand2tetris/projects/10/Square'
-EXPRESSIONLESS_SQUARE_PATH = '../../official_nand2tetris/nand2tetris/projects/10/ExpressionLessSqure'
+EXPRESSIONLESS_SQUARE_PATH = '../../official_nand2tetris/nand2tetris/projects/10/ExpressionLessSquare'
 
 
 class TokenizerXmlTester:
