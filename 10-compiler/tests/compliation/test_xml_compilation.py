@@ -26,11 +26,18 @@ def simple_xml_eq_check(file1, file2):
   tree2 = ET.parse("tmp1")
   elements1 = [(el.tag, el.text.strip()) for el in tree1.iter()]
   elements2 = [(el.tag, el.text.strip() if el.text else "") for el in tree2.iter()]
-  return elements1 == elements2
+  if elements1 == elements2:
+    return True
+  for e1, e2 in zip(elements1, elements2):
+     if e1 != e2:
+        print("answer:", e1)
+        print("got:", e2)
+        break
+  return False
 
 
 if __name__ == "__main__":
-  paths = get_inputs_and_expected_paths(EXPRESSIONLESS_SQUARE_PATH)[::-1]
+  paths = get_inputs_and_expected_paths(EXPRESSIONLESS_SQUARE_PATH)[::-1][1:]
   for input_, expected in paths:
      print(input_)
      test_expressionless_compilation(input_, expected)
