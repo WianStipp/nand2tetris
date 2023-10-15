@@ -458,7 +458,7 @@ class XMLCompilationEngine(base.CompilationEngine):
       close_paren.text = f" {self.tokenizer.symbol()} "
       self.tokenizer.advance()
     elif self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
-        self.tokenizer.symbol() == lexicon.Symbols.is_unary_op(self.tokenizer.symbol()):
+        lexicon.Symbols.is_unary_op(self.tokenizer.symbol()):
       op = et.SubElement(term, 'symbol')
       op.text = f" {self.tokenizer.symbol()} "
       self.tokenizer.advance()
