@@ -420,9 +420,9 @@ class XMLCompilationEngine(base.CompilationEngine):
     if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL:
       return
     self.compile_expression()
-    while self.tokenizer.token_type == lexicon.TokenType.SYMBOL:
-      term_name = et.SubElement(expression_list, 'symbol')
-      term_name.text = f" {self.tokenizer.symbol()} "
+    while self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and self.tokenizer.symbol() == lexicon.Symbols.COMMA:
+      comma = et.SubElement(expression_list, 'symbol')
+      comma.text = f" {self.tokenizer.symbol()} "
       self.tokenizer.advance()
       self.compile_expression()
     self._parent_element = temp
