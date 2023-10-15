@@ -464,7 +464,7 @@ class XMLCompilationEngine(base.CompilationEngine):
       self.tokenizer.advance()
       self.compile_term()
     else:
-      raise NotImplementedError()
+      raise ValueError()
     self._parent_element = temp
 
 
