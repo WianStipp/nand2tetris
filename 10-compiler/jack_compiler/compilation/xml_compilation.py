@@ -15,12 +15,12 @@ class XMLCompilationEngine(base.CompilationEngine):
     self.output_path = output_path
     self.tokenizer = jack_tokenizer.JackTokenizer(self.input_path)
     self.tokenizer.advance()
-    self._f = open(self.output_path, "wb")
     self._parent_element = None
 
   def compile_class(self) -> None:
     assert self.tokenizer.keyword() == lexicon.KeywordTypes.CLASS
     self.root = et.Element("class")
+    self._parent_element = self.root
     class_element = et.SubElement(self.root, 'keyword')
     class_element.text = ' class '
     self.tokenizer.advance()
@@ -28,9 +28,11 @@ class XMLCompilationEngine(base.CompilationEngine):
     classname_id.text = f" {self.tokenizer.identifier()} "
     self.tokenizer.advance()
     assert (v := self.tokenizer.symbol().value) == '{'
-    open_body = et.SubElement(self.root, 'symbol'); open_body.text = f" {v} "
-    self._parent_element = open_body
+    open_body = et.SubElement(self.root, 'symbol')
+    open_body.text = f" {v} "
+    temp = self._parent_element
     self.tokenizer.advance()
+    self._parent_element = temp
 
     while self.tokenizer.token_type() != lexicon.TokenType.SYMBOL:
       keyword = self.tokenizer.keyword()
@@ -43,10 +45,11 @@ class XMLCompilationEngine(base.CompilationEngine):
       else: raise ValueError(f"Should have been a classvardec or a subroutinedec, got {keyword}")
       self.tokenizer.advance()
 
-    print_tree(self.root)
     assert (v := self.tokenizer.symbol().value) == '}'
     close_body = et.SubElement(self.root, 'symbol'); close_body.text = f" {v} "
     print_tree(self.root)
+    with open(self.output_path, 'w') as f:
+      f.write(get_element_tree_string(self.root))
       
   def compile_class_var_dec(self) -> None:
     """Compiles a static variable or class variable declaration."""
@@ -135,10 +138,18 @@ class XMLCompilationEngine(base.CompilationEngine):
     e = et.SubElement(subroutine_body, 'symbol')
     e.text = f" {self.tokenizer.symbol()} "
     self.tokenizer.advance()
+
+    temp = self._parent_element
+    self._parent_element = subroutine_body
     while self.tokenizer.keyword() == lexicon.KeywordTypes.VAR:
       self.compile_var_dec()
       self.tokenizer.advance()
+    self._parent_element = temp
+
+    temp = self._parent_element
+    self._parent_element = subroutine_body
     self.compile_statements()
+    self._parent_element = temp
     # close curly
     e = et.SubElement(subroutine_body, 'symbol')
     e.text = f" {self.tokenizer.symbol()} "
@@ -168,8 +179,6 @@ class XMLCompilationEngine(base.CompilationEngine):
       extended_varname.text = f" {self.tokenizer.identifier()} "
       self.tokenizer.advance()
 
-    print(self.tokenizer._current_token)
-    print(self.tokenizer.input_stream)
     end = et.SubElement(vardec, 'symbol')
     end.text = f" {self.tokenizer.symbol()} "
 
@@ -195,7 +204,6 @@ class XMLCompilationEngine(base.CompilationEngine):
       else:
         break
       self.tokenizer.advance()
-    print_tree(self.root)
     
 
   def compile_let(self) -> None:
@@ -237,7 +245,10 @@ class XMLCompilationEngine(base.CompilationEngine):
     open_paran = et.SubElement(if_statement, 'symbol')
     open_paran.text = f" {self.tokenizer.symbol()} "
     self.tokenizer.advance()
+    temp = self._parent_element
+    self._parent_element = if_statement
     self.compile_expression()
+    self._parent_element = temp
     close_paran = et.SubElement(if_statement, 'symbol')
     close_paran.text = f" {self.tokenizer.symbol()} "
     self.tokenizer.advance()
@@ -245,7 +256,10 @@ class XMLCompilationEngine(base.CompilationEngine):
     open_paran = et.SubElement(if_statement, 'symbol')
     open_paran.text = f" {self.tokenizer.symbol()} "
     self.tokenizer.advance()
+    temp = self._parent_element
+    self._parent_element = if_statement
     self.compile_statements()
+    self._parent_element = temp
     close_paran = et.SubElement(if_statement, 'symbol')
     close_paran.text = f" {self.tokenizer.symbol()} "
     self.tokenizer.advance()
@@ -258,11 +272,12 @@ class XMLCompilationEngine(base.CompilationEngine):
       open_paran = et.SubElement(if_statement, 'symbol')
       open_paran.text = f" {self.tokenizer.symbol()} "
       self.tokenizer.advance()
+      temp = self._parent_element
+      self._parent_element = if_statement
       self.compile_statements()
+      self._parent_element = temp
       close_paran = et.SubElement(if_statement, 'symbol')
       close_paran.text = f" {self.tokenizer.symbol()} "
-      self.tokenizer.advance()
-
 
   def compile_while(self) -> None:
     """Compiles a while statement."""
@@ -293,7 +308,10 @@ class XMLCompilationEngine(base.CompilationEngine):
       close = et.SubElement(return_statement, 'symbol')
       close.text = f" {self.tokenizer.symbol()} "
       return
+    temp = self._parent_element
+    self._parent_element = return_statement
     self.compile_expression()
+    self._parent_element = temp
 
   def compile_subroutine_call(self) -> None:
     # subroutine_call = et.SubElement(self._parent_element, 'subroutineCall')
