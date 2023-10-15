@@ -37,7 +37,7 @@ def simple_xml_eq_check(file1, file2):
 
 
 if __name__ == "__main__":
-  paths = get_inputs_and_expected_paths(EXPRESSIONLESS_SQUARE_PATH)[::-1][1:]
+  paths = get_inputs_and_expected_paths(EXPRESSIONLESS_SQUARE_PATH)[::-1]
   for input_, expected in paths:
      print(input_)
      test_expressionless_compilation(input_, expected)

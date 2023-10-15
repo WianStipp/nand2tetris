@@ -305,6 +305,7 @@ class XMLCompilationEngine(base.CompilationEngine):
       self._parent_element = temp
       close_paran = et.SubElement(if_statement, 'symbol')
       close_paran.text = f" {self.tokenizer.symbol()} "
+      self.tokenizer.advance()
 
   def compile_while(self) -> None:
     """Compiles a while statement."""
