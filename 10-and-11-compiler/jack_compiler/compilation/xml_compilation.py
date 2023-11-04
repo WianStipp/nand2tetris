@@ -11,9 +11,7 @@ parser = et.XMLParser(remove_blank_text=True)
 
 class XMLCompilationEngine(base.CompilationEngine):
   def __init__(self, input_path: str, output_path: str, display_symbol_table: bool= False) -> None:
-    self.input_path = input_path
-    self.output_path = output_path
-    self.tokenizer = jack_tokenizer.JackTokenizer(self.input_path)
+    super().__init__(input_path, output_path)
     self.tokenizer.advance()
     self._parent_element = None
     if display_symbol_table:

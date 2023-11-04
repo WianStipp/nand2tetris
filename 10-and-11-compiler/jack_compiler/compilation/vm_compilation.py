@@ -2,10 +2,12 @@
 
 from jack_compiler.compilation import base
 from jack_compiler.compilation import symbol_table
+import argparse
 
 class VMCompilationEngine(base.CompilationEngine):
   def __init__(self, input_path: str, output_path: str) -> None:
     super().__init__(input_path, output_path)
+    self.tokenizer.advance()
 
   def compile_class(self) -> None:
     """Compiles a complete class."""
@@ -60,3 +62,13 @@ class VMCompilationEngine(base.CompilationEngine):
   def compile_expression_list(self) -> None:
     """Compiles a (possibly empty) comma-seperated
     list of expressions."""
+
+
+def parse_args():
+  parser = argparse.ArgumentParser()
+  parser.add_argument("source_code_path")
+  return parser.parse_args()
+
+if __name__ == "__main__":
+  ...
+  
