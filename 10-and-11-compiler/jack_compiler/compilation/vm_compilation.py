@@ -1,6 +1,7 @@
 """This module contains the VM Compilation Engine which translated Jack to VM Code."""
 
 import argparse
+import copy
 
 from jack_compiler.compilation import base, symbol_table, vm_writing
 from jack_compiler import lexicon
@@ -140,13 +141,49 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_expression(self) -> None:
     """Compiles an expression."""
+    self.compile_term()
+    while self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+          lexicon.Symbols.is_op(self.tokenizer.symbol()):
+      # op
+      self.tokenizer.symbol()
+      self.tokenizer.advance()
+      self.compile_term()
+ 
 
   def compile_term(self) -> None:
     """Compiles a term. Must do lookahead (LL2)."""
+    if self.tokenizer.token_type() == lexicon.TokenType.IDENTIFIER:
+      lookahead_tokenizer = copy.deepcopy(self.tokenizer)
+      lookahead_tokenizer.advance()
+      raise NotImplementedError()
+    elif self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
+      raise NotImplementedError()
+    elif self.tokenizer.token_type() == lexicon.TokenType.INT_CONST:
+      # int val
+      self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, self.tokenizer.int_val())
+      self.tokenizer.advance()
+    elif self.tokenizer.token_type() == lexicon.TokenType.STRING_CONST:
+      raise NotImplementedError()
+    elif self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+      self.tokenizer.symbol() == lexicon.Symbols.LEFT_PAREN:
+      self.tokenizer.advance()
+      self.compile_expression()
+      self.tokenizer.advance()
+    else:
+      raise NotImplementedError()
+    
 
   def compile_expression_list(self) -> None:
     """Compiles a (possibly empty) comma-seperated
     list of expressions."""
+    if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL:
+      if not self.tokenizer.symbol() == lexicon.Symbols.LEFT_PAREN:
+        return
+    self.compile_expression()
+    while self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and self.tokenizer.symbol() == lexicon.Symbols.COMMA:
+      # comma
+      self.tokenizer.advance()
+      self.compile_expression()
 
 
 def parse_args():
