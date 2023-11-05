@@ -1,5 +1,6 @@
 """This module contains the VM Compilation Engine which translated Jack to VM Code."""
 
+from typing import Optional
 import argparse
 import copy
 
@@ -10,7 +11,7 @@ class VMCompilationEngine(base.CompilationEngine):
   def __init__(self, input_path: str, output_path: str) -> None:
     super().__init__(input_path, output_path)
     self.tokenizer.advance()
-    self.vm_writer = vm_writing.VMWriter(output_writer=vm_writing.StdOutWriter())
+    self.vm_writer = vm_writing.VMWriter(output_writer=vm_writing.FileWriter(self.output_path))
     self.class_symbols = symbol_table.SymbolTable()
     self.subroutine_symbols = symbol_table.SymbolTable()
 
@@ -19,6 +20,7 @@ class VMCompilationEngine(base.CompilationEngine):
     self.class_symbols.reset()
     self.tokenizer.advance()
     # class name
+    self.class_name = self.tokenizer.identifier()
     self.tokenizer.advance()
     # open curly
     self.tokenizer.advance()
@@ -45,6 +47,12 @@ class VMCompilationEngine(base.CompilationEngine):
     """Compiles a complete method, function or constructor."""
     self.subroutine_symbols.reset()
     subroutine_type = self.tokenizer.keyword().value
+    n_args: int
+    if subroutine_type == lexicon.KeywordTypes.FUNCTION:
+      n_args = 0
+    elif subroutine_type == lexicon.KeywordTypes.METHOD:
+      n_args = 1
+    else: raise ValueError("")
     self.tokenizer.advance()
     # return type
     if self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
@@ -53,7 +61,7 @@ class VMCompilationEngine(base.CompilationEngine):
       ...
     self.tokenizer.advance()
     # subroutine name
-    self.vm_writer.write_function(f"CLASSNAME.{self.tokenizer.identifier()}", 10)
+    self.vm_writer.write_function(f"{self.class_name}.{self.tokenizer.identifier()}", n_args)
     self.tokenizer.advance()
     self.tokenizer.advance()
     self.compile_parameter_list()
@@ -65,6 +73,13 @@ class VMCompilationEngine(base.CompilationEngine):
   def compile_parameter_list(self) -> None:
     """Compiles a (possible empty) parameter list. Does not handle
     the enclosing '()'."""
+    if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL:
+      # no params
+      return
+    if self.tokenizer.token_type() == lexicon.TokenType.IDENTIFIER:
+      ...
+    else:
+      ...
 
   def compile_subroutine_body(self) -> None:
     """Complies a subroutine's body."""
@@ -150,9 +165,12 @@ class VMCompilationEngine(base.CompilationEngine):
       self.tokenizer.advance()
     # open paran
     self.tokenizer.advance()
+    self.num_expressions: Optional[int]= None
     self.compile_expression_list()
+    assert isinstance(self.num_expressions, int)
     # close paran
-    self.vm_writer.write_call(subroutine_name, 1)
+    self.vm_writer.write_call(subroutine_name, self.num_expressions)
+    self.num_expressions = None
 
 
   def compile_expression(self) -> None:
@@ -196,14 +214,18 @@ class VMCompilationEngine(base.CompilationEngine):
   def compile_expression_list(self) -> None:
     """Compiles a (possibly empty) comma-seperated
     list of expressions."""
+    self.num_expressions = 0
     if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL:
       if not self.tokenizer.symbol() == lexicon.Symbols.LEFT_PAREN:
+        # no expressions
         return
+    self.num_expressions += 1
     self.compile_expression()
     while self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and self.tokenizer.symbol() == lexicon.Symbols.COMMA:
       # comma
       self.tokenizer.advance()
       self.compile_expression()
+      self.num_expressions += 1
 
 
 def parse_args():

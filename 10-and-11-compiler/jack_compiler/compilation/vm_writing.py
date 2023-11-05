@@ -1,6 +1,7 @@
 """This module contains the VMWriter class."""
 
 import abc
+import os
 import enum
 
 from jack_compiler import lexicon
@@ -38,10 +39,13 @@ class OutputWriter(abc.ABC):
 class FileWriter(OutputWriter):
   def __init__(self, output_path: str) -> None:
     self.output_path = output_path
+    if os.path.exists(self.output_path):
+      os.remove(self.output_path)
 
   def write(self, cmd: str) -> None:
     with open(self.output_path, 'a') as f:
       f.write(cmd)
+      f.write("\n")
     
   def close(self) -> None:
     ...
