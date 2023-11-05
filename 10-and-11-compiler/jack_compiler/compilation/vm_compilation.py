@@ -53,6 +53,7 @@ class VMCompilationEngine(base.CompilationEngine):
       ...
     self.tokenizer.advance()
     # subroutine name
+    self.vm_writer.write_function(f"CLASSNAME.{self.tokenizer.identifier()}", 10)
     self.tokenizer.advance()
     self.tokenizer.advance()
     self.compile_parameter_list()
@@ -119,24 +120,39 @@ class VMCompilationEngine(base.CompilationEngine):
     self.compile_subroutine_call()
     self.tokenizer.advance()
     # semicolon
+    self.vm_writer.write_pop(vm_writing.VMSegment.TEMP, 0)
     self.tokenizer.advance()
 
   def compile_return(self) -> None:
     """Compile a return statement."""
+    self.tokenizer.advance()
+    if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL:
+      # need to push constant 0 for a null return
+      self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, 0)
+      self.vm_writer.write_return()
+      self.tokenizer.advance()
+      return
+    self.compile_expression()
+    self.vm_writer.write_return()
+    self.tokenizer.advance()
+
 
   def compile_subroutine_call(self) -> None:
     """Compile a subroutine call."""
     # caller name
+    subroutine_name = self.tokenizer.identifier()
     self.tokenizer.advance()
     if self.tokenizer.symbol() == lexicon.Symbols.PERIOD:
       # period
       self.tokenizer.advance()
       # subroutine name
+      subroutine_name = f'{subroutine_name}.{self.tokenizer.identifier()}'
       self.tokenizer.advance()
     # open paran
     self.tokenizer.advance()
     self.compile_expression_list()
     # close paran
+    self.vm_writer.write_call(subroutine_name, 1)
 
 
   def compile_expression(self) -> None:
@@ -144,10 +160,14 @@ class VMCompilationEngine(base.CompilationEngine):
     self.compile_term()
     while self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
           lexicon.Symbols.is_op(self.tokenizer.symbol()):
-      # op
-      self.tokenizer.symbol()
+      vm_op = self.tokenizer.symbol()
+      if vm_op == lexicon.Symbols.ASTERISK:
+        postfix_callable = lambda : self.vm_writer.write_call("Math.multiply", 2)
+      else:
+        postfix_callable = lambda : self.vm_writer.write_arithmetic(vm_op)
       self.tokenizer.advance()
       self.compile_term()
+      postfix_callable()
  
 
   def compile_term(self) -> None:

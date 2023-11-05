@@ -3,6 +3,8 @@
 import abc
 import enum
 
+from jack_compiler import lexicon
+
 class VMSegment(str, enum.Enum):
   CONSTANT = 'constant'
   ARGUMENT = 'argument'
@@ -66,10 +68,20 @@ class VMWriter:
     cmd = f"pop {segment.value} {index}"
     self.output_writer.write(cmd)
 
-  def write_arithmetic(self, command: VMArithmetic) -> None:
+  def write_arithmetic(self, command: lexicon.Symbols) -> None:
     """Write a VM arithmetic-logical command."""
-    cmd = command.value
-    self.output_writer.write(cmd)
+    if command == lexicon.Symbols.PLUS:
+      cmd = VMArithmetic.ADD
+    elif command == lexicon.Symbols.MINUS:
+      cmd = VMArithmetic.SUB
+    elif command == lexicon.Symbols.LT:
+      cmd = VMArithmetic.LT
+    elif command == lexicon.Symbols.GT:
+      cmd = VMArithmetic.GT
+    elif command == lexicon.Symbols.ASTERISK:
+      cmd = VMArithmetic.NOT
+    else: raise ValueError(command)
+    self.output_writer.write(cmd.value)
   
   def write_label(self, label: str) -> None:
     """Write a VM label comamnd."""

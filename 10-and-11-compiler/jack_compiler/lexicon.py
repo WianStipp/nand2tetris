@@ -60,4 +60,3 @@ class Symbols(str, enum.Enum):
   @classmethod
   def is_unary_op(cls, v: 'Symbols'):
     return v in [cls.MINUS, cls.TILDA]
-
