@@ -1,24 +1,64 @@
 """This module contains the VM Compilation Engine which translated Jack to VM Code."""
 
-from jack_compiler.compilation import base
-from jack_compiler.compilation import symbol_table
 import argparse
+
+from jack_compiler.compilation import base, symbol_table, vm_writing
+from jack_compiler import lexicon
 
 class VMCompilationEngine(base.CompilationEngine):
   def __init__(self, input_path: str, output_path: str) -> None:
     super().__init__(input_path, output_path)
     self.tokenizer.advance()
+    self.vm_writer = vm_writing.VMWriter(output_writer=vm_writing.StdOutWriter())
+    self.class_symbols = symbol_table.SymbolTable()
+    self.subroutine_symbols = symbol_table.SymbolTable()
 
   def compile_class(self) -> None:
     """Compiles a complete class."""
-    self.class_sym_table = symbol_table.SymbolTable()
-    self.method_sym_table = symbol_table.SymbolTable()
+    self.class_symbols.reset()
+    self.tokenizer.advance()
+    # class name
+    self.tokenizer.advance()
+    # open curly
+    self.tokenizer.advance()
+    while self.tokenizer.token_type() != lexicon.TokenType.SYMBOL:
+      keyword = self.tokenizer.keyword()
+      if keyword == lexicon.KeywordTypes.STATIC:
+        raise NotImplementedError()
+        self.class_sym_table.define()
+        self.compile_class_var_dec()
+      elif keyword == lexicon.KeywordTypes.FIELD:
+        raise NotImplementedError()
+        self.compile_class_var_dec()
+      elif keyword == lexicon.KeywordTypes.CONSTRUCTOR:
+        raise NotImplementedError()
+      elif keyword == lexicon.KeywordTypes.FUNCTION:
+        self.compile_subroutine_dec()
+      elif keyword == lexicon.KeywordTypes.METHOD:
+        raise NotImplementedError()
 
   def compile_class_var_dec(self) -> None:
     """Compiles a static variable or class variable declaration."""
 
   def compile_subroutine_dec(self) -> None:
     """Compiles a complete method, function or constructor."""
+    self.subroutine_symbols.reset()
+    subroutine_type = self.tokenizer.keyword().value
+    self.tokenizer.advance()
+    # return type
+    if self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
+      ...
+    else:
+      ...
+    self.tokenizer.advance()
+    # subroutine name
+    self.tokenizer.advance()
+    self.tokenizer.advance()
+    self.compile_parameter_list()
+    self.tokenizer.advance()
+    # subroutine body
+    self.compile_subroutine_body()
+    exit()
 
   def compile_parameter_list(self) -> None:
     """Compiles a (possible empty) parameter list. Does not handle
@@ -26,6 +66,16 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_subroutine_body(self) -> None:
     """Complies a subroutine's body."""
+    # open curly
+    self.tokenizer.advance()
+    # variable declarations
+    while self.tokenizer.keyword() == lexicon.KeywordTypes.VAR:
+      self.compile_var_dec()
+      self.tokenizer.advance()
+    
+    self.compile_statements()
+    # close curly
+    self.tokenizer.advance()
 
   def compile_var_dec(self) -> None:
     """Compiles a var declaration."""
@@ -33,6 +83,24 @@ class VMCompilationEngine(base.CompilationEngine):
   def compile_statements(self) -> None:
     """Compiles a sequence of statements. Does not handle the
     enclosing '{}'."""
+    while True:
+      if self.tokenizer.token_type() != lexicon.TokenType.KEYWORD:
+        break
+      if self.tokenizer.keyword() == lexicon.KeywordTypes.LET:
+        self.compile_let()
+      elif self.tokenizer.keyword() == lexicon.KeywordTypes.IF:
+        self.compile_if()
+      elif self.tokenizer.keyword() == lexicon.KeywordTypes.WHILE:
+        self.compile_while()
+      elif self.tokenizer.keyword() == lexicon.KeywordTypes.DO:
+        self.compile_do()
+      elif self.tokenizer.keyword() == lexicon.KeywordTypes.RETURN:
+        self.compile_return()
+      else:
+        self.tokenizer.advance()
+        break
+ 
+
 
   def compile_let(self) -> None:
     """Compiles a let statement."""
@@ -45,12 +113,29 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_do(self) -> None:
     """Compile a do statement"""
+    # do
+    self.tokenizer.advance()
+    self.compile_subroutine_call()
+    self.tokenizer.advance()
+    # semicolon
+    self.tokenizer.advance()
 
   def compile_return(self) -> None:
     """Compile a return statement."""
 
   def compile_subroutine_call(self) -> None:
     """Compile a subroutine call."""
+    # caller name
+    self.tokenizer.advance()
+    if self.tokenizer.symbol() == lexicon.Symbols.PERIOD:
+      # period
+      self.tokenizer.advance()
+      # subroutine name
+      self.tokenizer.advance()
+    # open paran
+    self.tokenizer.advance()
+    self.compile_expression_list()
+    # close paran
 
 
   def compile_expression(self) -> None:
@@ -71,4 +156,3 @@ def parse_args():
 
 if __name__ == "__main__":
   ...
-  

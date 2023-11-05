@@ -4,8 +4,8 @@ from lxml import etree as et
 import xml.etree.ElementTree as ET
 import copy
 
-from jack_compiler.compilation import base, symbol_table
-from jack_compiler import jack_tokenizer, lexicon
+from jack_compiler.compilation import base
+from jack_compiler import lexicon
 
 parser = et.XMLParser(remove_blank_text=True)
 
@@ -218,7 +218,6 @@ class XMLCompilationEngine(base.CompilationEngine):
       if self.tokenizer.keyword() == lexicon.KeywordTypes.LET:
         self.compile_let()
       elif self.tokenizer.keyword() == lexicon.KeywordTypes.IF:
-        print("compiling if")
         self.compile_if()
       elif self.tokenizer.keyword() == lexicon.KeywordTypes.WHILE:
         self.compile_while()

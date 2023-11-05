@@ -3,7 +3,7 @@
 from typing import List, Type
 import os
 
-from jack_compiler.compilation import base
+from jack_compiler.compilation import base, xml_compilation, vm_compilation
 
 class JackAnalyzer:
   def __init__(self, input_path: str, compilation_engine: Type[base.CompilationEngine]) -> None:
@@ -14,8 +14,12 @@ class JackAnalyzer:
     """Analyze the Jack code"""
     source_files = get_jack_source_files(self.input_path)
     for source_file in source_files:
-      print(source_file)
-      output_path = get_output_path(source_file)
+      if self.compilation_engine == xml_compilation.XMLCompilationEngine:
+        suffix = 'xml'
+      elif self.compilation_engine == vm_compilation.VMCompilationEngine:
+        suffix = 'vm'
+      else: raise ValueError()
+      output_path = get_output_path(source_file, suffix)
       print(f"compiling {source_file} into {output_path}")
       self.compilation_engine(source_file, output_path).compile_class()
 
@@ -28,5 +32,5 @@ def get_jack_source_files(path: str) -> List[str]:
   return [path]
 
 
-def get_output_path(input_path: str) -> os.PathLike:
-  return input_path.replace(".jack", ".xml")
+def get_output_path(input_path: str, new_suffix: str) -> os.PathLike:
+  return input_path.replace(".jack", f".{new_suffix}")
