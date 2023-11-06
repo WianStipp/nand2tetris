@@ -139,7 +139,21 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_let(self) -> None:
     """Compiles a let statement."""
-    raise NotImplementedError("")
+    # let keyword
+    self.tokenizer.advance()
+    # var name
+    varname = self.tokenizer.identifier()
+    self.tokenizer.advance()
+    if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+      self.tokenizer.symbol() == lexicon.Symbols.LEFT_SQR_PAREN:
+      # array
+      raise NotImplementedError("")
+    # assignment
+    self.tokenizer.advance()
+    self.compile_expression()
+    self.vm_writer.write_pop(vm_writing.VMSegment.LOCAL, self.subroutine_symbols.index_of(varname))
+    # semi colon
+    self.tokenizer.advance()
 
   def compile_if(self) -> None:
     """Compiles an if statement."""
@@ -209,11 +223,22 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_term(self) -> None:
     """Compiles a term. Must do lookahead (LL2)."""
-    print(self.tokenizer.token_type())
     if self.tokenizer.token_type() == lexicon.TokenType.IDENTIFIER:
       lookahead_tokenizer = copy.deepcopy(self.tokenizer)
       lookahead_tokenizer.advance()
-      raise NotImplementedError()
+      if lookahead_tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+        lookahead_tokenizer.symbol() in {lexicon.Symbols.LEFT_PAREN, lexicon.Symbols.PERIOD}:
+        self.compile_subroutine_call()
+        self.tokenizer.advance()
+      else:
+        identifier = self.tokenizer.identifier()
+        idx = self.subroutine_symbols.index_of(identifier)
+        self.subroutine_symbols.kind_of(identifier)
+        self.vm_writer.write_push(vm_writing.VMSegment.LOCAL, idx)
+        self.tokenizer.advance()
+        if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+            self.tokenizer.symbol() == lexicon.Symbols.LEFT_SQR_PAREN:
+          raise NotImplementedError()
     elif self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
       raise NotImplementedError()
     elif self.tokenizer.token_type() == lexicon.TokenType.INT_CONST:
@@ -230,7 +255,6 @@ class VMCompilationEngine(base.CompilationEngine):
     elif self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
         lexicon.Symbols.is_unary_op(self.tokenizer.symbol()):
       op = self.tokenizer.symbol()
-      print(op)
       if op == lexicon.Symbols.MINUS:
         vm_op = vm_writing.VMArithmetic.NEG
       elif op == lexicon.Symbols.TILDA:
