@@ -1,6 +1,7 @@
 """This module contains the VM Compilation Engine which translated Jack to VM Code."""
 
-from typing import Optional
+from typing import Optional, List
+import os
 import argparse
 import copy
 
@@ -11,7 +12,9 @@ class VMCompilationEngine(base.CompilationEngine):
   def __init__(self, input_path: str, output_path: str) -> None:
     super().__init__(input_path, output_path)
     self.tokenizer.advance()
-    self.vm_writer = vm_writing.VMWriter(output_writer=vm_writing.FileWriter(self.output_path))
+    if os.environ.get("VM_DEBUG"):
+      self.vm_writer = vm_writing.VMWriter(output_writer=vm_writing.StdOutWriter())
+    else: self.vm_writer = vm_writing.VMWriter(output_writer=vm_writing.FileWriter(self.output_path))
     self.class_symbols = symbol_table.SymbolTable()
     self.subroutine_symbols = symbol_table.SymbolTable()
 
@@ -96,6 +99,21 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_var_dec(self) -> None:
     """Compiles a var declaration."""
+    self.tokenizer.advance()
+    # type
+    if self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
+      type_ = self.tokenizer.keyword().value
+    else: type_ = self.tokenizer.identifier()
+    self.tokenizer.advance()
+    names: List[str] = [self.tokenizer.identifier()]
+    self.tokenizer.advance()
+    while self.tokenizer.symbol() != lexicon.Symbols.SEMICOLON:
+      # comma
+      self.tokenizer.advance()
+      names.append(self.tokenizer.identifier())
+      self.tokenizer.advance()
+    for name in names:
+      self.subroutine_symbols.define(name=name, type_=type_, kind=symbol_table.Kind.VAR)
 
   def compile_statements(self) -> None:
     """Compiles a sequence of statements. Does not handle the
@@ -121,6 +139,7 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_let(self) -> None:
     """Compiles a let statement."""
+    raise NotImplementedError("")
 
   def compile_if(self) -> None:
     """Compiles an if statement."""
@@ -190,6 +209,7 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_term(self) -> None:
     """Compiles a term. Must do lookahead (LL2)."""
+    print(self.tokenizer.token_type())
     if self.tokenizer.token_type() == lexicon.TokenType.IDENTIFIER:
       lookahead_tokenizer = copy.deepcopy(self.tokenizer)
       lookahead_tokenizer.advance()
@@ -207,6 +227,18 @@ class VMCompilationEngine(base.CompilationEngine):
       self.tokenizer.advance()
       self.compile_expression()
       self.tokenizer.advance()
+    elif self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+        lexicon.Symbols.is_unary_op(self.tokenizer.symbol()):
+      op = self.tokenizer.symbol()
+      print(op)
+      if op == lexicon.Symbols.MINUS:
+        vm_op = vm_writing.VMArithmetic.NEG
+      elif op == lexicon.Symbols.TILDA:
+        vm_op = vm_writing.VMArithmetic.EQ
+      else: raise ValueError(op)
+      self.tokenizer.advance()
+      self.compile_term()
+      self.vm_writer.write_arithmetic(vm_op)
     else:
       raise NotImplementedError()
     

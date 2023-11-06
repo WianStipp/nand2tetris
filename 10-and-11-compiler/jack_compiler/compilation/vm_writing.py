@@ -1,5 +1,6 @@
 """This module contains the VMWriter class."""
 
+from typing import Union
 import abc
 import os
 import enum
@@ -72,8 +73,11 @@ class VMWriter:
     cmd = f"pop {segment.value} {index}"
     self.output_writer.write(cmd)
 
-  def write_arithmetic(self, command: lexicon.Symbols) -> None:
+  def write_arithmetic(self, command: Union[lexicon.Symbols, VMArithmetic]) -> None:
     """Write a VM arithmetic-logical command."""
+    if isinstance(command, VMArithmetic):
+      self.output_writer.write(command.value)
+      return
     if command == lexicon.Symbols.PLUS:
       cmd = VMArithmetic.ADD
     elif command == lexicon.Symbols.MINUS:
