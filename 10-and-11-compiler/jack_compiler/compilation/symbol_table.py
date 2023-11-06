@@ -30,7 +30,9 @@ class SymbolTable:
     """Add to the table."""
     if name in self.data:
       raise ValueError(f"{name=} is already defined in the table.")
-    self.data[name] = TableEntry(type_, kind, 0)
+    entry = TableEntry(type_, kind, 0)
+    self.data[name] = entry
+    print('assigned', name, '<-', entry)
   
   def var_count(self, kind: Kind) -> int:
     """Return the number of variables of a given kind already defined."""

@@ -71,7 +71,6 @@ class VMCompilationEngine(base.CompilationEngine):
     self.tokenizer.advance()
     # subroutine body
     self.compile_subroutine_body()
-    exit()
 
   def compile_parameter_list(self) -> None:
     """Compiles a (possible empty) parameter list. Does not handle
@@ -80,9 +79,26 @@ class VMCompilationEngine(base.CompilationEngine):
       # no params
       return
     if self.tokenizer.token_type() == lexicon.TokenType.IDENTIFIER:
-      ...
+      raise NotImplementedError("")
     else:
-      ...
+      # keyword
+      type_ = self.tokenizer.keyword().value
+    self.tokenizer.advance()
+    varname = self.tokenizer.identifier()
+    self.tokenizer.advance()
+    self.subroutine_symbols.define(varname, type_, vm_writing.VMSegment.ARGUMENT)
+    while self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
+        self.tokenizer.symbol() == lexicon.Symbols.COMMA:
+      # comma
+      self.tokenizer.advance()
+      if self.tokenizer.token_type() == lexicon.TokenType.IDENTIFIER:
+        type_ = self.tokenizer.identifier()
+      else:
+        type_ = self.tokenizer.keyword()
+      self.tokenizer.advance()
+      varname = self.tokenizer.identifier()
+      self.tokenizer.advance()
+      self.subroutine_symbols.define(varname, type_, vm_writing.VMSegment.ARGUMENT)
 
   def compile_subroutine_body(self) -> None:
     """Complies a subroutine's body."""
