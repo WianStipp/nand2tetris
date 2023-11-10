@@ -86,7 +86,7 @@ class VMWriter:
       cmd = VMArithmetic.LT
     elif command == lexicon.Symbols.GT:
       cmd = VMArithmetic.GT
-    elif command == lexicon.Symbols.ASTERISK:
+    elif command == lexicon.Symbols.TILDA:
       cmd = VMArithmetic.NOT
     else: raise ValueError(command)
     self.output_writer.write(cmd.value)

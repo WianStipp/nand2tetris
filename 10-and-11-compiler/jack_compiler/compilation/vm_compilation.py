@@ -1,12 +1,13 @@
 """This module contains the VM Compilation Engine which translated Jack to VM Code."""
 
-from typing import Optional, List
+from typing import Optional, List, Callable
 import os
 import argparse
 import copy
 
 from jack_compiler.compilation import base, symbol_table, vm_writing
 from jack_compiler import lexicon
+
 
 class VMCompilationEngine(base.CompilationEngine):
   def __init__(self, input_path: str, output_path: str) -> None:
@@ -17,6 +18,7 @@ class VMCompilationEngine(base.CompilationEngine):
     else: self.vm_writer = vm_writing.VMWriter(output_writer=vm_writing.FileWriter(self.output_path))
     self.class_symbols = symbol_table.SymbolTable()
     self.subroutine_symbols = symbol_table.SymbolTable()
+    self.label_incrementer: Callable[[], str] = get_label_incrementer()
 
   def compile_class(self) -> None:
     """Compiles a complete class."""
@@ -181,10 +183,17 @@ class VMCompilationEngine(base.CompilationEngine):
     # while keyword; then open paren
     self.tokenizer.advance(); self.tokenizer.advance()
     # while condition
+    while_label = self.label_incrementer()
+    statements_label = self.label_incrementer()
+    self.vm_writer.write_label(while_label)
     self.compile_expression()
+    self.vm_writer.write_arithmetic(vm_writing.VMArithmetic.NOT)
+    self.vm_writer.write_if(statements_label)
     # close paran; open curly
     self.tokenizer.advance(); self.tokenizer.advance()
     self.compile_statements()
+    self.vm_writer.write_goto(while_label)
+    self.vm_writer.write_label(statements_label)
     # close paran
     self.tokenizer.advance()
 
@@ -316,6 +325,13 @@ class VMCompilationEngine(base.CompilationEngine):
       self.compile_expression()
       self.num_expressions += 1
 
+def get_label_incrementer() -> Callable[[], str]:
+  i = 0
+  def increment_label() -> str:
+    nonlocal i
+    i += 1
+    return f"L{i}"
+  return increment_label
 
 def parse_args():
   parser = argparse.ArgumentParser()
