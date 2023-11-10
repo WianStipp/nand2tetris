@@ -59,9 +59,10 @@ class VMCompilationEngine(base.CompilationEngine):
     self.tokenizer.advance()
     # return type
     if self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
-      ...
+      if self.tokenizer.keyword() != lexicon.KeywordTypes.VOID:
+        raise NotImplementedError()
     else:
-      ...
+      raise NotImplementedError()
     self.tokenizer.advance()
     # subroutine name
     self.vm_writer.write_function(f"{self.class_name}.{self.tokenizer.identifier()}", n_args)
@@ -86,7 +87,7 @@ class VMCompilationEngine(base.CompilationEngine):
     self.tokenizer.advance()
     varname = self.tokenizer.identifier()
     self.tokenizer.advance()
-    self.subroutine_symbols.define(varname, type_, vm_writing.VMSegment.ARGUMENT)
+    self.subroutine_symbols.define(varname, type_, symbol_table.Kind.ARG)
     while self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
         self.tokenizer.symbol() == lexicon.Symbols.COMMA:
       # comma
@@ -173,9 +174,19 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_if(self) -> None:
     """Compiles an if statement."""
+    raise NotImplementedError()
 
   def compile_while(self) -> None:
     """Compiles a while statement."""
+    # while keyword; then open paren
+    self.tokenizer.advance(); self.tokenizer.advance()
+    # while condition
+    self.compile_expression()
+    # close paran; open curly
+    self.tokenizer.advance(); self.tokenizer.advance()
+    self.compile_statements()
+    # close paran
+    self.tokenizer.advance()
 
   def compile_do(self) -> None:
     """Compile a do statement"""
@@ -256,7 +267,13 @@ class VMCompilationEngine(base.CompilationEngine):
             self.tokenizer.symbol() == lexicon.Symbols.LEFT_SQR_PAREN:
           raise NotImplementedError()
     elif self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
-      raise NotImplementedError()
+      if self.tokenizer.keyword() == lexicon.KeywordTypes.TRUE:
+        self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, 1)
+        self.vm_writer.write_arithmetic(vm_writing.VMArithmetic.NEG)
+      elif self.tokenizer.keyword() == lexicon.KeywordTypes.FALSE:
+        self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, 0)
+      else: raise ValueError(self.tokenizer.keyword())
+      self.tokenizer.advance()
     elif self.tokenizer.token_type() == lexicon.TokenType.INT_CONST:
       # int val
       self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, self.tokenizer.int_val())
