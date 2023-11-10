@@ -176,15 +176,38 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_if(self) -> None:
     """Compiles an if statement."""
-    raise NotImplementedError()
+    # if keyword; then open param
+    self.tokenizer.advance(); self.tokenizer.advance()
+    self.compile_expression()
+    self.vm_writer.write_arithmetic(vm_writing.VMArithmetic.NOT)
+    if_label = self.label_incrementer('-if')
+    self.vm_writer.write_if(if_label) # if-goto L1
+    # close paran; open curly
+    self.tokenizer.advance(); self.tokenizer.advance()
+    self.compile_statements()
+    else_label = self.label_incrementer('-if')
+    self.vm_writer.write_goto(else_label) # goto L2
+    self.vm_writer.write_label(if_label) # label L1
+    # close paran
+    self.tokenizer.advance()
+
+    if self.tokenizer.token_type() == lexicon.TokenType.KEYWORD and \
+      self.tokenizer.keyword() == lexicon.KeywordTypes.ELSE:
+      # else keyword; then open paren
+      self.tokenizer.advance(); self.tokenizer.advance()
+      self.compile_statements()
+      # close paran
+      self.tokenizer.advance()
+
+    self.vm_writer.write_label(else_label) # label L2
 
   def compile_while(self) -> None:
     """Compiles a while statement."""
     # while keyword; then open paren
     self.tokenizer.advance(); self.tokenizer.advance()
     # while condition
-    while_label = self.label_incrementer()
-    statements_label = self.label_incrementer()
+    while_label = self.label_incrementer('-while')
+    statements_label = self.label_incrementer('-while')
     self.vm_writer.write_label(while_label)
     self.compile_expression()
     self.vm_writer.write_arithmetic(vm_writing.VMArithmetic.NOT)
@@ -327,10 +350,10 @@ class VMCompilationEngine(base.CompilationEngine):
 
 def get_label_incrementer() -> Callable[[], str]:
   i = 0
-  def increment_label() -> str:
+  def increment_label(suffix: str = '') -> str:
     nonlocal i
     i += 1
-    return f"L{i}"
+    return f"L{i}{suffix}"
   return increment_label
 
 def parse_args():
