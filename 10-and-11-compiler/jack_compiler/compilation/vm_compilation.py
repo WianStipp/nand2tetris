@@ -8,6 +8,8 @@ import copy
 from jack_compiler.compilation import base, symbol_table, vm_writing
 from jack_compiler import lexicon
 
+IF_SUFFIX = 'AOF'
+WHILE_SUFFIX = 'AOWILE'
 
 class VMCompilationEngine(base.CompilationEngine):
   def __init__(self, input_path: str, output_path: str) -> None:
@@ -172,7 +174,13 @@ class VMCompilationEngine(base.CompilationEngine):
     # assignment
     self.tokenizer.advance()
     self.compile_expression()
-    self.vm_writer.write_pop(vm_writing.VMSegment.LOCAL, self.subroutine_symbols.index_of(varname))
+    kind = self.subroutine_symbols.kind_of(varname)
+    if kind == symbol_table.Kind.ARG:
+      seg = vm_writing.VMSegment.ARGUMENT
+    elif kind == symbol_table.Kind.VAR:
+      seg = vm_writing.VMSegment.LOCAL
+    else: raise ValueError(kind)
+    self.vm_writer.write_pop(seg, self.subroutine_symbols.index_of(varname))
     # semi colon
     self.tokenizer.advance()
 
@@ -182,12 +190,12 @@ class VMCompilationEngine(base.CompilationEngine):
     self.tokenizer.advance(); self.tokenizer.advance()
     self.compile_expression()
     self.vm_writer.write_arithmetic(vm_writing.VMArithmetic.NOT)
-    if_label = self.label_incrementer('-if')
+    if_label = self.label_incrementer(IF_SUFFIX)
     self.vm_writer.write_if(if_label) # if-goto L1
     # close paran; open curly
     self.tokenizer.advance(); self.tokenizer.advance()
     self.compile_statements()
-    else_label = self.label_incrementer('-if')
+    else_label = self.label_incrementer(IF_SUFFIX)
     self.vm_writer.write_goto(else_label) # goto L2
     self.vm_writer.write_label(if_label) # label L1
     # close paran
@@ -208,8 +216,8 @@ class VMCompilationEngine(base.CompilationEngine):
     # while keyword; then open paren
     self.tokenizer.advance(); self.tokenizer.advance()
     # while condition
-    while_label = self.label_incrementer('-while')
-    statements_label = self.label_incrementer('-while')
+    while_label = self.label_incrementer(WHILE_SUFFIX)
+    statements_label = self.label_incrementer(WHILE_SUFFIX)
     self.vm_writer.write_label(while_label)
     self.compile_expression()
     self.vm_writer.write_arithmetic(vm_writing.VMArithmetic.NOT)
@@ -294,8 +302,13 @@ class VMCompilationEngine(base.CompilationEngine):
       else:
         identifier = self.tokenizer.identifier()
         idx = self.subroutine_symbols.index_of(identifier)
-        self.subroutine_symbols.kind_of(identifier)
-        self.vm_writer.write_push(vm_writing.VMSegment.LOCAL, idx)
+        kind = self.subroutine_symbols.kind_of(identifier)
+        if kind == symbol_table.Kind.ARG:
+          seg = vm_writing.VMSegment.ARGUMENT
+        elif kind == symbol_table.Kind.VAR:
+          seg = vm_writing.VMSegment.LOCAL
+        else: raise ValueError(kind)
+        self.vm_writer.write_push(seg, idx)
         self.tokenizer.advance()
         if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
             self.tokenizer.symbol() == lexicon.Symbols.LEFT_SQR_PAREN:
