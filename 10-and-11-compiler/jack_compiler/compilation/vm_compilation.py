@@ -62,15 +62,17 @@ class VMCompilationEngine(base.CompilationEngine):
     # return type
     if self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
       if self.tokenizer.keyword() != lexicon.KeywordTypes.VOID:
-        raise NotImplementedError()
+        ...
     else:
       raise NotImplementedError()
     self.tokenizer.advance()
     # subroutine name
-    self.vm_writer.write_function(f"{self.class_name}.{self.tokenizer.identifier()}", n_args)
+    subroutine_identifier = f"{self.class_name}.{self.tokenizer.identifier()}"
     self.tokenizer.advance()
     self.tokenizer.advance()
     self.compile_parameter_list()
+    n_args += self.subroutine_symbols.var_count(symbol_table.Kind.ARG)
+    self.vm_writer.write_function(subroutine_identifier, n_args)
     self.tokenizer.advance()
     # subroutine body
     self.compile_subroutine_body()
@@ -101,7 +103,7 @@ class VMCompilationEngine(base.CompilationEngine):
       self.tokenizer.advance()
       varname = self.tokenizer.identifier()
       self.tokenizer.advance()
-      self.subroutine_symbols.define(varname, type_, vm_writing.VMSegment.ARGUMENT)
+      self.subroutine_symbols.define(varname, type_, symbol_table.Kind.ARG)
 
   def compile_subroutine_body(self) -> None:
     """Complies a subroutine's body."""

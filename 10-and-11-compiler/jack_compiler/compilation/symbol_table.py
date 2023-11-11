@@ -30,7 +30,8 @@ class SymbolTable:
     """Add to the table."""
     if name in self.data:
       raise ValueError(f"{name=} is already defined in the table.")
-    entry = TableEntry(type_, kind, 0)
+    kind_count = self.var_count(kind)
+    entry = TableEntry(type_, kind, kind_count)
     self.data[name] = entry
     print('assigned', name, '<-', entry)
   
@@ -39,7 +40,7 @@ class SymbolTable:
     counter: int = 0
     for _, row in self.data.items():
       if row.kind == kind:
-        counter += row.count
+        counter += 1
     return counter
   
   def kind_of(self, name: str) -> Kind:
