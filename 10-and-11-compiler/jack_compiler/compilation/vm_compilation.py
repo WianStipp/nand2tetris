@@ -74,9 +74,16 @@ class VMCompilationEngine(base.CompilationEngine):
     self.tokenizer.advance()
     self.compile_parameter_list()
     n_args += self.subroutine_symbols.var_count(symbol_table.Kind.ARG)
-    self.vm_writer.write_function(subroutine_identifier, n_args)
     self.tokenizer.advance()
     # subroutine body
+    # open curly
+    self.tokenizer.advance()
+    # variable declarations
+    while self.tokenizer.keyword() == lexicon.KeywordTypes.VAR:
+      self.compile_var_dec()
+      self.tokenizer.advance()
+    n_args += self.subroutine_symbols.var_count(symbol_table.Kind.VAR)
+    self.vm_writer.write_function(subroutine_identifier, n_args)
     self.compile_subroutine_body()
 
   def compile_parameter_list(self) -> None:
@@ -109,13 +116,6 @@ class VMCompilationEngine(base.CompilationEngine):
 
   def compile_subroutine_body(self) -> None:
     """Complies a subroutine's body."""
-    # open curly
-    self.tokenizer.advance()
-    # variable declarations
-    while self.tokenizer.keyword() == lexicon.KeywordTypes.VAR:
-      self.compile_var_dec()
-      self.tokenizer.advance()
-    
     self.compile_statements()
     # close curly
     self.tokenizer.advance()
@@ -338,7 +338,7 @@ class VMCompilationEngine(base.CompilationEngine):
       if op == lexicon.Symbols.MINUS:
         vm_op = vm_writing.VMArithmetic.NEG
       elif op == lexicon.Symbols.TILDA:
-        vm_op = vm_writing.VMArithmetic.EQ
+        vm_op = vm_writing.VMArithmetic.NOT
       else: raise ValueError(op)
       self.tokenizer.advance()
       self.compile_term()
