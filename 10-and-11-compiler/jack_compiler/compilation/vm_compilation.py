@@ -229,7 +229,7 @@ class VMCompilationEngine(base.CompilationEngine):
       self.vm_writer.write_pop(vm_writing.VMSegment.TEMP, 0)
       self.vm_writer.write_pop(vm_writing.VMSegment.POINTER, 1)
       self.vm_writer.write_push(vm_writing.VMSegment.TEMP, 0)
-      self.vm_writer.write_pop(vm_writing.VMSegment.THAT, 1)
+      self.vm_writer.write_pop(vm_writing.VMSegment.THAT, 0)
       self.tokenizer.advance()
       return
 

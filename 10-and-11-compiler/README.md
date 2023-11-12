@@ -5,7 +5,7 @@ Compiles (high-level) Jack code into VM code.
 - [ ] VM Code writer
     - [X] Seven
     - [X] ConvertToBin
-    - [] Square
-    - [] Average
+    - [X] Square
+    - [X] Average
     - [] Pong
     - [] ComplexArrays
