@@ -130,7 +130,7 @@ class VMCompilationEngine(base.CompilationEngine):
       # no params
       return
     if self.tokenizer.token_type() == lexicon.TokenType.IDENTIFIER:
-      raise NotImplementedError("")
+      type_ = self.tokenizer.identifier()
     else:
       # keyword
       type_ = self.tokenizer.keyword().value
@@ -422,6 +422,8 @@ class VMCompilationEngine(base.CompilationEngine):
         self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, 0)
       elif self.tokenizer.keyword() == lexicon.KeywordTypes.THIS:
         self.vm_writer.write_push(vm_writing.VMSegment.POINTER, 0)
+      elif self.tokenizer.keyword() == lexicon.KeywordTypes.NULL:
+        self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, 0)
       else: raise ValueError(self.tokenizer.keyword())
       self.tokenizer.advance()
     elif self.tokenizer.token_type() == lexicon.TokenType.INT_CONST:
