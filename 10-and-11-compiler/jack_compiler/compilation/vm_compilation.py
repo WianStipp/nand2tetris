@@ -28,7 +28,7 @@ class VMCompilationEngine(base.CompilationEngine):
     # class name
     self.class_name = self.tokenizer.identifier()
 
-    self.label_incrementer: Callable[[], str] = get_label_incrementer()
+    self.label_incrementer: Callable[[], str] = get_label_incrementer(self.class_name)
     self.tokenizer.advance()
     # open curly
     self.tokenizer.advance()
@@ -115,6 +115,10 @@ class VMCompilationEngine(base.CompilationEngine):
       self.vm_writer.write_function(subroutine_identifier, 0)
       self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, self.class_symbols.var_count(symbol_table.Kind.FIELD))
       self.vm_writer.write_call("Memory.alloc", 1)
+      self.vm_writer.write_pop(vm_writing.VMSegment.POINTER, 0)
+    elif subroutine_type == lexicon.KeywordTypes.METHOD:
+      self.vm_writer.write_function(subroutine_identifier, n_args)
+      self.vm_writer.write_push(vm_writing.VMSegment.ARGUMENT, 0)
       self.vm_writer.write_pop(vm_writing.VMSegment.POINTER, 0)
     else:
       self.vm_writer.write_function(subroutine_identifier, n_args)
@@ -290,7 +294,6 @@ class VMCompilationEngine(base.CompilationEngine):
     self.vm_writer.write_return()
     self.tokenizer.advance()
 
-
   def compile_subroutine_call(self) -> None:
     """Compile a subroutine call."""
     # caller name
@@ -300,16 +303,38 @@ class VMCompilationEngine(base.CompilationEngine):
       # period
       self.tokenizer.advance()
       # subroutine name
-      subroutine_name = f'{subroutine_name}.{self.tokenizer.identifier()}'
+      try:
+        self._get_symbol_table(subroutine_name).index_of(subroutine_name)
+      except KeyError:
+        is_method = False
+        type_of = subroutine_name
+      else:
+        # is a method, so need one more expression
+        table = self._get_symbol_table(subroutine_name)
+        is_method = True
+        kind = table.kind_of(subroutine_name)
+        type_of = table.type_of(subroutine_name)
+        if kind == symbol_table.Kind.FIELD:
+          seg = vm_writing.VMSegment.THIS
+        elif kind == symbol_table.Kind.VAR:
+          seg = vm_writing.VMSegment.LOCAL
+        else: raise ValueError(kind)
+        self.vm_writer.write_push(seg, table.index_of(subroutine_name))
+      subroutine_name = f'{type_of}.{self.tokenizer.identifier()}'
       self.tokenizer.advance()
     else:
+      # implicit caller
+      is_method = True
+      self.vm_writer.write_push(vm_writing.VMSegment.POINTER, 0)
       subroutine_name = f"{self.class_name}.{subroutine_name}"
+
     # open paran
     self.tokenizer.advance()
-    self.num_expressions: Optional[int]= None
     self.compile_expression_list()
     assert isinstance(self.num_expressions, int)
     # close paran
+    if is_method:
+      self.num_expressions += 1
     self.vm_writer.write_call(subroutine_name, self.num_expressions)
     self.num_expressions = None
 
