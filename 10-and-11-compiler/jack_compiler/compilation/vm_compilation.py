@@ -35,8 +35,6 @@ class VMCompilationEngine(base.CompilationEngine):
     while self.tokenizer.token_type() != lexicon.TokenType.SYMBOL:
       keyword = self.tokenizer.keyword()
       if keyword == lexicon.KeywordTypes.STATIC:
-        raise NotImplementedError()
-        self.class_sym_table.define()
         self.compile_class_var_dec()
       elif keyword == lexicon.KeywordTypes.FIELD:
         self.compile_class_var_dec()
@@ -84,6 +82,7 @@ class VMCompilationEngine(base.CompilationEngine):
       n_args = 0
     elif subroutine_type == lexicon.KeywordTypes.METHOD:
       n_args = 1
+      self.subroutine_symbols.define('this', self.class_name, symbol_table.Kind.ARG)
     elif subroutine_type == lexicon.KeywordTypes.CONSTRUCTOR:
       n_args = 0
     else: raise ValueError("")
