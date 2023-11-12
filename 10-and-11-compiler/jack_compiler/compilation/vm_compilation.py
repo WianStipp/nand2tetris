@@ -205,8 +205,34 @@ class VMCompilationEngine(base.CompilationEngine):
     self.tokenizer.advance()
     if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
       self.tokenizer.symbol() == lexicon.Symbols.LEFT_SQR_PAREN:
-      # array
-      raise NotImplementedError("")
+      # array, e.g. let a[expression1] = expression2
+      self.tokenizer.advance()
+      # expression1
+      table = self._get_symbol_table(varname)
+      kind = table.kind_of(varname)
+      if kind == symbol_table.Kind.ARG:
+        seg = vm_writing.VMSegment.ARGUMENT
+      elif kind == symbol_table.Kind.FIELD:
+        seg = vm_writing.VMSegment.THIS
+      elif kind == symbol_table.Kind.STATIC:
+        seg = vm_writing.VMSegment.STATIC
+      elif kind == symbol_table.Kind.VAR:
+        seg = vm_writing.VMSegment.LOCAL
+      else: raise ValueError(kind)
+      self.vm_writer.write_push(seg, table.index_of(varname))
+      self.compile_expression()
+      # add [expression1] to array base address
+      self.vm_writer.write_arithmetic(vm_writing.VMArithmetic.ADD)
+      self.tokenizer.advance(); self.tokenizer.advance()
+      # expression1
+      self.compile_expression()
+      self.vm_writer.write_pop(vm_writing.VMSegment.TEMP, 0)
+      self.vm_writer.write_pop(vm_writing.VMSegment.POINTER, 1)
+      self.vm_writer.write_push(vm_writing.VMSegment.TEMP, 0)
+      self.vm_writer.write_pop(vm_writing.VMSegment.THAT, 1)
+      self.tokenizer.advance()
+      return
+
     # assignment
     self.tokenizer.advance()
     self.compile_expression()
@@ -347,6 +373,8 @@ class VMCompilationEngine(base.CompilationEngine):
       vm_op = self.tokenizer.symbol()
       if vm_op == lexicon.Symbols.ASTERISK:
         postfix_callable = lambda : self.vm_writer.write_call("Math.multiply", 2)
+      elif vm_op == lexicon.Symbols.FORWARD_SLASH:
+        postfix_callable = lambda : self.vm_writer.write_call("Math.divide", 2)
       else:
         postfix_callable = lambda : self.vm_writer.write_arithmetic(vm_op)
       self.tokenizer.advance()
@@ -380,7 +408,13 @@ class VMCompilationEngine(base.CompilationEngine):
         self.tokenizer.advance()
         if self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
             self.tokenizer.symbol() == lexicon.Symbols.LEFT_SQR_PAREN:
-          raise NotImplementedError()
+          # a[i], now at [
+          self.tokenizer.advance()
+          self.compile_expression()
+          self.vm_writer.write_arithmetic(vm_writing.VMArithmetic.ADD)
+          self.vm_writer.write_pop(vm_writing.VMSegment.POINTER, 1)
+          self.vm_writer.write_push(vm_writing.VMSegment.THAT, 0)
+          self.tokenizer.advance()
     elif self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
       if self.tokenizer.keyword() == lexicon.KeywordTypes.TRUE:
         self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, 1)
@@ -396,7 +430,13 @@ class VMCompilationEngine(base.CompilationEngine):
       self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, self.tokenizer.int_val())
       self.tokenizer.advance()
     elif self.tokenizer.token_type() == lexicon.TokenType.STRING_CONST:
-      raise NotImplementedError()
+      string_val = self.tokenizer.string_val()
+      self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, len(string_val))
+      self.vm_writer.write_call("String.new", 1)
+      for s in string_val:
+        self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, ord(s))
+        self.vm_writer.write_call("String.appendChar", 2)
+      self.tokenizer.advance()
     elif self.tokenizer.token_type() == lexicon.TokenType.SYMBOL and \
       self.tokenizer.symbol() == lexicon.Symbols.LEFT_PAREN:
       self.tokenizer.advance()
