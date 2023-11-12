@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "jack-os"
+version = "0.1.0"
+description = ""
+authors = ["Wian Stipp <stippwian@gmail.com>"]
+readme = "README.md"
+packages = [{include = "jack_os"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pydantic = "^2.4.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
