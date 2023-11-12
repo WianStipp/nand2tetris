@@ -20,7 +20,6 @@ class VMCompilationEngine(base.CompilationEngine):
     else: self.vm_writer = vm_writing.VMWriter(output_writer=vm_writing.FileWriter(self.output_path))
     self.class_symbols = symbol_table.SymbolTable()
     self.subroutine_symbols = symbol_table.SymbolTable()
-    self.label_incrementer: Callable[[], str] = get_label_incrementer()
 
   def compile_class(self) -> None:
     """Compiles a complete class."""
@@ -28,6 +27,8 @@ class VMCompilationEngine(base.CompilationEngine):
     self.tokenizer.advance()
     # class name
     self.class_name = self.tokenizer.identifier()
+
+    self.label_incrementer: Callable[[], str] = get_label_incrementer()
     self.tokenizer.advance()
     # open curly
     self.tokenizer.advance()
@@ -38,17 +39,41 @@ class VMCompilationEngine(base.CompilationEngine):
         self.class_sym_table.define()
         self.compile_class_var_dec()
       elif keyword == lexicon.KeywordTypes.FIELD:
-        raise NotImplementedError()
         self.compile_class_var_dec()
       elif keyword == lexicon.KeywordTypes.CONSTRUCTOR:
-        raise NotImplementedError()
+        self.compile_subroutine_dec()
       elif keyword == lexicon.KeywordTypes.FUNCTION:
         self.compile_subroutine_dec()
       elif keyword == lexicon.KeywordTypes.METHOD:
-        raise NotImplementedError()
+        self.compile_subroutine_dec()
 
   def compile_class_var_dec(self) -> None:
     """Compiles a static variable or class variable declaration."""
+    # field keyword
+    scope_kw = self.tokenizer.keyword()
+    if scope_kw == lexicon.KeywordTypes.FIELD:
+      scope = symbol_table.Kind.FIELD
+    elif scope_kw == lexicon.KeywordTypes.STATIC:
+      scope = symbol_table.Kind.STATIC
+    else: raise ValueError(scope_kw)
+    self.tokenizer.advance()
+    # type
+    if self.tokenizer.token_type() == lexicon.TokenType.KEYWORD:
+      type_ = self.tokenizer.keyword().value
+    elif self.tokenizer.token_type() == lexicon.TokenType.IDENTIFIER:
+      type_ = self.tokenizer.identifier()
+    else: raise ValueError(f"Expected type declaration or classname, but got {self.tokenizer.token_type()}")
+    self.tokenizer.advance()
+    # variable name
+    varname = self.tokenizer.identifier()
+    self.class_symbols.define(varname, type_, scope)
+    self.tokenizer.advance()
+    while self.tokenizer.symbol() != lexicon.Symbols.SEMICOLON:
+      # comma
+      self.tokenizer.advance()
+      self.class_symbols.define(self.tokenizer.identifier(), type_, scope)
+      self.tokenizer.advance()
+    self.tokenizer.advance()
 
   def compile_subroutine_dec(self) -> None:
     """Compiles a complete method, function or constructor."""
@@ -59,6 +84,8 @@ class VMCompilationEngine(base.CompilationEngine):
       n_args = 0
     elif subroutine_type == lexicon.KeywordTypes.METHOD:
       n_args = 1
+    elif subroutine_type == lexicon.KeywordTypes.CONSTRUCTOR:
+      n_args = 0
     else: raise ValueError("")
     self.tokenizer.advance()
     # return type
@@ -66,7 +93,7 @@ class VMCompilationEngine(base.CompilationEngine):
       if self.tokenizer.keyword() != lexicon.KeywordTypes.VOID:
         ...
     else:
-      raise NotImplementedError()
+      ...
     self.tokenizer.advance()
     # subroutine name
     subroutine_identifier = f"{self.class_name}.{self.tokenizer.identifier()}"
@@ -83,7 +110,14 @@ class VMCompilationEngine(base.CompilationEngine):
       self.compile_var_dec()
       self.tokenizer.advance()
     n_args += self.subroutine_symbols.var_count(symbol_table.Kind.VAR)
-    self.vm_writer.write_function(subroutine_identifier, n_args)
+    
+    if subroutine_type == lexicon.KeywordTypes.CONSTRUCTOR:
+      self.vm_writer.write_function(subroutine_identifier, 0)
+      self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, self.class_symbols.var_count(symbol_table.Kind.FIELD))
+      self.vm_writer.write_call("Memory.alloc", 1)
+      self.vm_writer.write_pop(vm_writing.VMSegment.POINTER, 0)
+    else:
+      self.vm_writer.write_function(subroutine_identifier, n_args)
     self.compile_subroutine_body()
 
   def compile_parameter_list(self) -> None:
@@ -157,8 +191,6 @@ class VMCompilationEngine(base.CompilationEngine):
       else:
         self.tokenizer.advance()
         break
- 
-
 
   def compile_let(self) -> None:
     """Compiles a let statement."""
@@ -174,13 +206,18 @@ class VMCompilationEngine(base.CompilationEngine):
     # assignment
     self.tokenizer.advance()
     self.compile_expression()
-    kind = self.subroutine_symbols.kind_of(varname)
+    table = self._get_symbol_table(varname)
+    kind = table.kind_of(varname)
     if kind == symbol_table.Kind.ARG:
       seg = vm_writing.VMSegment.ARGUMENT
     elif kind == symbol_table.Kind.VAR:
       seg = vm_writing.VMSegment.LOCAL
+    elif kind == symbol_table.Kind.FIELD:
+      seg = vm_writing.VMSegment.THIS
+    elif kind == symbol_table.Kind.STATIC:
+      seg = vm_writing.VMSegment.STATIC
     else: raise ValueError(kind)
-    self.vm_writer.write_pop(seg, self.subroutine_symbols.index_of(varname))
+    self.vm_writer.write_pop(seg, table.index_of(varname))
     # semi colon
     self.tokenizer.advance()
 
@@ -265,6 +302,8 @@ class VMCompilationEngine(base.CompilationEngine):
       # subroutine name
       subroutine_name = f'{subroutine_name}.{self.tokenizer.identifier()}'
       self.tokenizer.advance()
+    else:
+      subroutine_name = f"{self.class_name}.{subroutine_name}"
     # open paran
     self.tokenizer.advance()
     self.num_expressions: Optional[int]= None
@@ -288,7 +327,6 @@ class VMCompilationEngine(base.CompilationEngine):
       self.tokenizer.advance()
       self.compile_term()
       postfix_callable()
- 
 
   def compile_term(self) -> None:
     """Compiles a term. Must do lookahead (LL2)."""
@@ -301,12 +339,17 @@ class VMCompilationEngine(base.CompilationEngine):
         self.tokenizer.advance()
       else:
         identifier = self.tokenizer.identifier()
-        idx = self.subroutine_symbols.index_of(identifier)
-        kind = self.subroutine_symbols.kind_of(identifier)
+        table = self._get_symbol_table(identifier)
+        idx = table.index_of(identifier)
+        kind = table.kind_of(identifier)
         if kind == symbol_table.Kind.ARG:
           seg = vm_writing.VMSegment.ARGUMENT
         elif kind == symbol_table.Kind.VAR:
           seg = vm_writing.VMSegment.LOCAL
+        elif kind == symbol_table.Kind.FIELD:
+          seg = vm_writing.VMSegment.THIS
+        elif kind == symbol_table.Kind.STATIC:
+          seg = vm_writing.VMSegment.STATIC
         else: raise ValueError(kind)
         self.vm_writer.write_push(seg, idx)
         self.tokenizer.advance()
@@ -319,6 +362,8 @@ class VMCompilationEngine(base.CompilationEngine):
         self.vm_writer.write_arithmetic(vm_writing.VMArithmetic.NEG)
       elif self.tokenizer.keyword() == lexicon.KeywordTypes.FALSE:
         self.vm_writer.write_push(vm_writing.VMSegment.CONSTANT, 0)
+      elif self.tokenizer.keyword() == lexicon.KeywordTypes.THIS:
+        self.vm_writer.write_push(vm_writing.VMSegment.POINTER, 0)
       else: raise ValueError(self.tokenizer.keyword())
       self.tokenizer.advance()
     elif self.tokenizer.token_type() == lexicon.TokenType.INT_CONST:
@@ -362,13 +407,19 @@ class VMCompilationEngine(base.CompilationEngine):
       self.tokenizer.advance()
       self.compile_expression()
       self.num_expressions += 1
+    
+  def _get_symbol_table(self, identifier: str) -> symbol_table.SymbolTable:
+    try:
+      self.subroutine_symbols.kind_of(identifier)
+    except KeyError: return self.class_symbols
+    return self.subroutine_symbols
 
-def get_label_incrementer() -> Callable[[], str]:
+def get_label_incrementer(classname: str) -> Callable[[], str]:
   i = 0
   def increment_label(suffix: str = '') -> str:
     nonlocal i
     i += 1
-    return f"L{i}{suffix}"
+    return f"{classname}_L{i}{suffix}"
   return increment_label
 
 def parse_args():

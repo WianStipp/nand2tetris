@@ -9,4 +9,3 @@ Compiles (high-level) Jack code into VM code.
     - [] Average
     - [] Pong
     - [] ComplexArrays
-    
