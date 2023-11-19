@@ -6,6 +6,6 @@
 - [] Math.jack
 - [] Output.jack
 - [] Screen.jack
-- [] String.jack
+- [X] String.jack
 - [] Sys.jack
 - [] Pong Game working?
