@@ -26,9 +26,7 @@ class Memory {
 
     /** Returns the RAM value at the given address. */
     function int peek(int address) {
-        var int value;
-        let value = ram[address];
-        return value;
+        return ram[address];
     }
 
     /** Sets the RAM value at the given address to the given value. */

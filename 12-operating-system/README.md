@@ -2,7 +2,7 @@
 
 - [X] Memory.jack
 - [X] Array.jack
-- [] Keyboard.jack
+- [X] Keyboard.jack
 - [] Math.jack
 - [] Output.jack
 - [] Screen.jack
