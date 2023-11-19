@@ -42,14 +42,21 @@ class Memory {
     function int alloc(int size) {
         var int heapIdx, block, currSize;
 
+        if (size > (14335-2)) {
+            do Sys.halt();
+        }
+
         let heapIdx = 0;
-        let block = freeList[heapIdx];
         let currSize = freeList[heapIdx+1];
-        // while (size + 2 > currSize) {
-            // return block;
-        // }
-        // get new base address
-        let block = freeList[heapIdx] + freeList[heapIdx+1] - size + 2;
+        
+        while ( (size + 2) > currSize) {
+            let heapIdx = freeList[heapIdx];
+            if (heapIdx = 0) {
+                do Sys.halt();
+            }
+            let currSize = freeList[heapIdx+1];
+        }
+        let block = heapIdx + currSize - size + 2;
         let freeList[block - 1] = size;
         let freeList[heapIdx+1] = freeList[heapIdx+1] - 2 - size;
         return block;
@@ -58,7 +65,13 @@ class Memory {
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
     function void deAlloc(Array o) {
-        
+        var int heapIdx;
+
+        let heapIdx = 0;
+        while (~(freeList[heapIdx] = 0)) {
+            let heapIdx = freeList[heapIdx];
+        }
+        let freeList[heapIdx] = o-2;
         return;
     }    
 }
