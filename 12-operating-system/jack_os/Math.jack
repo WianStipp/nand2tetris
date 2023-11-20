@@ -32,6 +32,10 @@ class Math {
         return;
     }
 
+    function int twoToTheFn(int x) {
+        return twoToThe[x];
+    }
+
     /** Returns the absolute value of x. */
     function int abs(int x) {
         if (x<0) {
