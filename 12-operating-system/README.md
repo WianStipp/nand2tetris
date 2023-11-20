@@ -4,8 +4,8 @@
 - [X] Array.jack
 - [X] Keyboard.jack
 - [X] Math.jack
-- [] Output.jack
+- [X] Output.jack
 - [X] Screen.jack
 - [X] String.jack
-- [] Sys.jack
+- [X] Sys.jack
 - [] Pong Game working?
